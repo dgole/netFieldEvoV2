@@ -1,0 +1,10 @@
+1000 is 20 points, 0.75 to 60.0
+1001 is 200 points, 0.75 to 120.0
+1002 is 200 points, 0.75 to 600.0
+1003 is 400 poitns, 0.75 to 1200.0
+1004 is 1000 points, 0.75 to 1200.0
+
+5200 is original 200 points, 0.75 to 60.0
+
+5200 is original 200 points, 0.75 to 60.0
+5201 is a test to make sure its the same as the original
