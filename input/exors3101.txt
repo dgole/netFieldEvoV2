@@ -1,0 +1,37 @@
+runId            3101
+tFlip            1.e1
+bInitScale       -1.e-2
+bStar            1.e3
+threshFactor     0.0
+nCycles          0.5
+riDz1            90
+
+mdot0            1.e-2
+
+rStar            0.01
+tWait            5.e1
+tRelax           2.e2
+nOut		         4000
+gridId           2000
+nr               200
+rMin             0.05
+rIn              0.07 
+rOut		         5.0
+rMax		         6.0
+rYearNorm        1.0
+courantNo        0.1
+bz0option        0
+bz0index         -0.5
+sig0option       0
+sig0index        0.0
+riDz2            200
+riDrive          200
+alphaMaxAz       4.e-2  
+alphaMinAz       4.e-2
+alphaDz          4.e-4
+sigBcFactor      0.9935
+
+
+
+
+

@@ -1,0 +1,26 @@
+runId            1000
+tWait            1.e1
+nOut		         4000
+gridId           5200
+nr               200
+rMin             0.75
+rIn              1.0
+rOut		 				 50.0
+rMax		 				 60.0
+rYearNorm        100.0
+courantNo        0.03
+mdot0            1.e9
+bInitScale       1.e0
+bz0option        0
+bz0index         -0.5
+sig0option       0
+sig0index        0.0
+driveAmpFrac     1.e-2
+alphaMaxAz       1.e-2  
+alphaMinAz       1.e-2
+sigBcFactor      0.99911
+
+
+
+
+

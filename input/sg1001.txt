@@ -1,0 +1,17 @@
+runId            1001
+tmax             1.e4
+bInitScale       1.e-2
+mdot0            1.e-1
+nOut		         4000
+gridId           3000
+rIn              1.0
+rOut		         100.0
+courantNo        0.02
+bz0option        0 
+bz0index         -0.5        #index of initial bz power law
+sigBcFactor      0.99
+
+
+
+
+
