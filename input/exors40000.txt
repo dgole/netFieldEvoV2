@@ -1,6 +1,6 @@
 runId            40000
 tFlip            1.e1
-nCycles          100
+nCycles          2
 
 bStar            1.e3
 bInitScale       1.e-2

@@ -61,7 +61,7 @@ m.rcParams['ytick.minor.width'] = m.rcParams['xtick.minor.width']
 tWait = 5.0
 
 idNum = int(sys.argv[1])
-tFlip = float(sys.argv[1])
+tFlip = float(sys.argv[2])
 
 # make data object
 do = reader.Data("../../output/run" + str(idNum) + "/")
@@ -83,7 +83,7 @@ plt.clf()
 #do.icPlots()
 
 # all time scales on the same plot (at t=0)
-'''
+
 n1=0
 n2=-1
 print("tOrbit at 1 AU:")
@@ -102,7 +102,7 @@ plt.ylabel("timescale (years)", fontdict=fontLabels)
 plt.xlabel("r (AU)", fontdict=fontLabels)
 plt.savefig(do.savePath + "timeScales.png", bbox_inches='tight')
 plt.clf()
-'''
+
 
 #	for i in range(do.nr):
 #		print(i, do.r[i], do.tOrbit[i], do.data[20][0,i], do.data[19][0,i])
