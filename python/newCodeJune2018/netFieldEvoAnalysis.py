@@ -41,6 +41,8 @@ m.rcParams['ytick.minor.width'] = m.rcParams['xtick.minor.width']
 # if it acts on the object make it a function, ie plotting data
 # functions add plots to a figure but don't export
 
+# make this read input file as well
+
 tWait = 5.0
 
 class Data:

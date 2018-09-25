@@ -4,12 +4,52 @@ import os
 import sys
 import resource
 import time
-import functionLib as lib
 
-# process input file
-fileName = "../../input/exors"+str(sys.argv[1])+".txt"
-lib.readInputFile(fileName)
+class InputFile:
+	def __init__(self, fileName):
+		inp = np.asarray(np.genfromtxt(filePathAndName, dtype=str))
+		print(inp)
+		for i in range(inp.shape[0]):
+			word = inp[i][0]
+			number = inp[i][1]
+			if   word == 'runId'        : runId        = int(number)
+			elif word == 'gridId'       : gridId       = int(number)
+			elif word == 'nr'           : nr           = int(number)
+			elif word == 'rMin'         : rMin         = float(number)
+			elif word == 'rMax'         : rMax         = float(number)
+			elif word == 'rIn'          : rIn          = float(number)
+			elif word == 'rOut'         : rOut         = float(number)
+			elif word == 'mStar'        : mStar        = float(number)
+			elif word == 'tWait'        : tWait        = float(number)
+			elif word == 'tFlip'        : tFlip        = float(number)
+			elif word == 'tRelax'       : tRelax       = float(number)
+			elif word == 'nCycles'      : nCycles      = float(number)
+			elif word == 'nOut'         : nOut         = float(number)
+			elif word == 'courantNo'    : courantNo    = float(number)
+			elif word == 'mdot0'        : mdot0        = float(number)
+			elif word == 'bInitScale'   : bInitScale   = float(number)
+			elif word == 'bz0option'    : bz0option    = int(number)
+			elif word == 'bz0factor'    : bz0factor    = float(number)
+			elif word == 'bz0index'     : bz0index     = float(number)
+			elif word == 'sig0option'   : sig0option   = int(number)
+			elif word == 'sig0index'    : sig0index    = float(number)
+			elif word == 'bStar'        : bStar        = float(number)
+			elif word == 'rStar'        : rStar        = float(number)
+			elif word == 'threshFactor' : threshFactor = float(number)
+			elif word == 'riDz1'        : riDz1        = int(number)
+			elif word == 'riDz2'        : riDz2        = int(number) 
+			elif word == 'riDrive'      : riDrive      = int(number) 
+			elif word == 'alphaMaxAz'   : alphaMaxAz   = float(number)
+			elif word == 'alphaMinAz'   : alphaMinAz   = float(number)
+			elif word == 'alphaDz'      : alphaDz      = float(number)
+			elif word == 'invBetazCut'  : invBetazCut  = float(number)
+			elif word == 'sigBcFactor'  : sigBcFactor  = float(number)
+			elif word == 'nSmooth'      : nSmooth      = int(number)
+			elif word == 'rampUp'       : rampUpOption = int(number)
+			elif word == 'halfFirstCycle':halfFirstCycleOption = int(number)
+			#elif word == '' :  = number
 
+'''
 Tdz4 = 1.e15 #new
 prandtl = 1.0
 tCycle = 2.0*tFlip
@@ -39,29 +79,35 @@ rootG       = (2.0*3.14159)
 rootGM      = rootG * np.sqrt(mStar)
 littleSigma = 1.0
 rStar       = rStar * 0.00465
-
+'''
+'''
 savePath = "../../output/run"+str(runId)+"/"
 if not os.path.exists(savePath): os.makedirs(savePath)
-
+'''
+'''
 # IC function for bz 
 def getPsi0(sg):
 	bz0 = bInitScale*np.power(sg.r, bz0index)
 	return getPsiFromBz(sg,0.0,bz0) 
-
+'''
+'''
 def getBz0(sg):
 	bz0 = bInitScale*np.power(sg.r, bz0index)
 	return bz0
-
+'''
+'''
 def getStellarDipole(sg):
 	b = bStar*np.power(sg.r/rStar, -3.0)
 	return b
-
+'''
+'''
 def getStellarDipoleRampUp(sg, teff):
 	#bStar1 = bStar * (teff/(tmax-tWait))
 	bStar1 = np.sign(bStar)*min(np.absolute(bStar), np.absolute(bStar) * (teff/(0.5*tmax-tWait)) )
 	b = bStar1*np.power(sg.r/rStar, -3.0)
 	return b
-
+'''
+'''
 # alpha calculation 
 alphaSmoothingMatrix = np.zeros([nr,nr])
 if nSmooth > 0:
@@ -127,7 +173,9 @@ def getAlpha(sg, s):
 	# smooth with smoothing matrix 
 	alphaSmooth = np.dot(alphaSmoothingMatrix, alphaRaw)	
 	return alphaRaw, alphaSmooth 
+'''
 
+'''
 counter=0
 # driving sigma and/or bz
 def getAddToSig(sg, dg, s):
@@ -156,8 +204,9 @@ def getAddToBz(sg, dg, s):
 	#if counter%100==0: print((getStellarDipoleRampUp(sg, teff))[10]);
 	counter+=1;
 	return addToBz
+'''
 	
-
+'''
 # functions to advance psi and sigma
 def getkPsi(sg, dg, s):
 	return -(sg.r*dg.vAdv*s.bz + sg.r*dg.vDiff*s.brs)  
@@ -179,7 +228,8 @@ def rkGetNextState(sg, dg, s1):
 	addToPsi = getPsiFromBz(sg, dg, getAddToBz(sg, dg, s1))
 	addToSig = getAddToSig(sg, dg, s1)
 	return State(sg, dg, s1.psi + kPsi*dg.dt + addToPsi, s1.sig + kSig*dg.dt + addToSig)
-
+'''
+'''
 # helper stuff
 def spaceDeriv(sg, a):
 	aPlus=np.roll(a,1)
@@ -208,9 +258,9 @@ def getTimeStep(sg, dg, s):
 	dtDiff = np.amin(np.abs(2.0*sg.dr/(3.14159*dg.vDiff)))
 	dt = min(dtAdv, dtDiff)
 	return dt*courantNo
-
+'''
 	
-
+'''
 # static grid object
 class StaticGrid:
 	def __init__(self, idNum):
@@ -262,7 +312,8 @@ class StaticGrid:
 				if outerDiffBc==-1: self.applyDiffBc[i] = 0.0
 				if outerDiffBc== 0: self.applyDiffBc[i] = smooth(xOut(self.r[i]))
 				if outerDiffBc== 1: self.applyDiffBc[i] = 1.0 
-
+'''
+'''
 # state object
 class State:
 	def __init__(self, sg, dg, psi0, sig0, initialize=0):
@@ -286,7 +337,8 @@ class State:
 			self.kSig = getkSig(sg, dg, self)
 			self.beta = np.sign(self.bz)*(dg.rho*np.power(dg.cs,2.0))/np.square(self.bz)
 			self.alphaRawPrev = dg.alphaRaw
-
+'''
+'''
 # dynamic grid object
 class DynamicGrid:
 	def __init__(self, sg, s, initialize=0):
@@ -343,7 +395,9 @@ class DynamicGrid:
 			#plt.loglog(sg.r, self.mdot); plt.xlabel("r"); plt.ylabel("mdot"); plt.show(); plt.clf();
 			#plt.loglog(sg.r, s.sig); plt.xlabel("r"); plt.ylabel("sigma"); plt.show(); plt.clf();
 		self.dt = getTimeStep(sg, self, s)
+'''
 		
+'''
 # timer object
 class Timer:
 	def __init__(self, labels):
@@ -365,7 +419,9 @@ class Timer:
 				sys.stdout.write(self.labels[n] + ": " + str(1000*self.timeSpent[n]/self.count[n]) + " ms per call  " + str(self.count[n]) + " calls" + "\n")
 			elif self.count[n]==1:
 				sys.stdout.write(self.labels[n] + ": " + str(1000*self.timeSpent[n]/self.count[n]) + " ms per call  " + str(self.count[n]) + " call" + "\n" )
+'''
 
+'''
 # report function
 def report(timer, n, t, tmax):
 	msPerCycle = 1000*timer.checkTimer(0)/(max(n,1))
@@ -378,7 +434,9 @@ def report(timer, n, t, tmax):
 	sys.stdout.write( str(round(msPerCycleRecent,3)) + " ms per cycle recently " + "\n")    
 	sys.stdout.write( str(int(timeRemaining/3600)) + ":" + str(int(timeRemaining%3600/60)) + ":" + str(int((timeRemaining%60))) + " remaining" + "\n") 
 	sys.stdout.flush()
+'''
 
+'''
 # function to write to file
 def writeToFile(sg, dgOut, sOut, nOutCurrent, timer):
 	# manipulate into saveable output and save
@@ -415,10 +473,10 @@ def writeToFile(sg, dgOut, sOut, nOutCurrent, timer):
 	np.save(savePath+"state.npy", sSaveArray)
 	timer.endTimer(5)
 	np.save(savePath+"time.npy", np.asarray(tOut))
+'''
 
 
-
-
+'''
 sg = StaticGrid(gridId)
 
 dgOut = []; sOut = []; tOut=[];
@@ -455,6 +513,7 @@ writeToFile(sg, dgOut, sOut, nOutCurrent, timer)
 
 
 timer.printInfo()
+'''
 
 
 
