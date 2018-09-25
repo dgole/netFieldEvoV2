@@ -88,7 +88,7 @@ n1=0
 n2=-1
 print("tOrbit at 1 AU:")
 print(do.tOrbit[do.getrindex(1.0)])
-print(do.tOrbit[125])
+print(do.data[1][1,do.getrindex(1.0)])
 plt.loglog(do.r, do.tOrbit, label="orbital", color='k')
 plt.loglog(do.r, do.data[19][n1], label="advection, dead", color='b', linestyle='--')
 plt.loglog(do.r, do.data[20][n1], label="diffusion, dead", color='b')

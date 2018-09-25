@@ -18,7 +18,7 @@ for i in range(inp.shape[0]):
 	elif word == 'rMax'         : rMax         = float(number)
 	elif word == 'rIn'          : rIn          = float(number)
 	elif word == 'rOut'         : rOut         = float(number)
-	elif word == 'rYearNorm'    : rYearNorm    = float(number)
+	elif word == 'mStar'        : mStar        = float(number)
 	elif word == 'tWait'        : tWait        = float(number)
 	elif word == 'tFlip'        : tFlip        = float(number)
 	elif word == 'tRelax'       : tRelax       = float(number)
@@ -73,10 +73,10 @@ mu          = 1.0
 mp          = 1.0
 kr0         = 1.0
 kb          = 1.0
-rootGM      = (2.0*3.14159)*np.power(rYearNorm,1.5)
-yearTime    = (2.0*3.14159)*np.power(rYearNorm,1.5)/rootGM
-print(yearTime)
+rootG       = (2.0*3.14159)
+rootGM      = rootG * np.sqrt(mStar)
 littleSigma = 1.0
+rStar       = rStar * 0.00465
 
 savePath = "../../output/run"+str(runId)+"/"
 if not os.path.exists(savePath): os.makedirs(savePath)
