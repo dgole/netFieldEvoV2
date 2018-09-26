@@ -8,7 +8,7 @@ nOut		         8000
 # STAR PARAMS
 mStar            1.0
 rStar            2.0
-bStar            1.e3
+bStar            -1.e3
 tCycle           2.e1
 
 # GRID INFO

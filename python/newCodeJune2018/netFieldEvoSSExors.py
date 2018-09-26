@@ -50,6 +50,8 @@ if not os.path.exists(savePath): os.makedirs(savePath)
 copyfile(inPath+inFileName, savePath+inFileName) 
 
 
+riDz1 = (np.abs(tempGrid-inp.rDz1)).argmin()
+riDz2 = (np.abs(tempGrid-inp.rDz2)).argmin()
 
 
 
@@ -98,37 +100,41 @@ def getAlpha(sg, s):
 	activeOnes = np.zeros_like(sg.r)
 	# 1 if dead, 0 if active for all r	
 	deadOnes = np.zeros_like(sg.r)
-	# inside inp.riDz1 is always active
-	activeOnes[0:inp.riDz1]   = 1.0
+	# inside riDz1 is always active
+	activeOnes[0:riDz1]   = 1.0
 	# Hall DZ can be active or dead
-	activeOnes[inp.riDz1:inp.riDz2] = s.beta[inp.riDz1:inp.riDz2]<0.0
-	deadOnes[inp.riDz1:inp.riDz2]   = s.beta[inp.riDz1:inp.riDz2]>0.0
+	activeOnes[riDz1:riDz2] = s.beta[riDz1:riDz2]>0.0
+	deadOnes[riDz1:riDz2]   = s.beta[riDz1:riDz2]<0.0
 	# if inbetween, dead if previously dead, active if previously active
 	# active 
-	activeOnes[inp.riDz1:inp.riDz2] = np.logical_or( 
+	'''
+	activeOnes[riDz1:riDz2] = np.logical_or( 
 															np.logical_and(
 																np.logical_and(
-																	s.bz[inp.riDz1:inp.riDz2] > -inp.threshFactor*np.abs(sg.bz0[inp.riDz1:inp.riDz2]),
-																	s.bz[inp.riDz1:inp.riDz2] <  inp.threshFactor*np.abs(sg.bz0[inp.riDz1:inp.riDz2])															
+																	s.bz[riDz1:riDz2] > -inp.threshFactor*np.abs(sg.bz0[riDz1:riDz2]),
+																	s.bz[riDz1:riDz2] <  inp.threshFactor*np.abs(sg.bz0[riDz1:riDz2])															
 															),
-																s.alphaRawPrev[inp.riDz1:inp.riDz2] == inp.alphaMinAz
+																s.alphaRawPrev[riDz1:riDz2] == inp.alphaMinAz
 															),
-															s.bz[inp.riDz1:inp.riDz2] < -inp.threshFactor*np.abs(sg.bz0[inp.riDz1:inp.riDz2])
+															s.bz[riDz1:riDz2] < -inp.threshFactor*np.abs(sg.bz0[riDz1:riDz2])
 														)
-	# dead 
-	deadOnes[inp.riDz1:inp.riDz2] = np.logical_or( 
+	'''	
+	# dead
+	''' 
+	deadOnes[riDz1:riDz2] = np.logical_or( 
 															np.logical_and(
 																np.logical_and(
-																	s.bz[inp.riDz1:inp.riDz2] > -inp.threshFactor*np.abs(sg.bz0[inp.riDz1:inp.riDz2]),
-																	s.bz[inp.riDz1:inp.riDz2] <  inp.threshFactor*np.abs(sg.bz0[inp.riDz1:inp.riDz2])															
+																	s.bz[riDz1:riDz2] > -inp.threshFactor*np.abs(sg.bz0[riDz1:riDz2]),
+																	s.bz[riDz1:riDz2] <  inp.threshFactor*np.abs(sg.bz0[riDz1:riDz2])															
 																),
-																s.alphaRawPrev[inp.riDz1:inp.riDz2] == inp.alphaDz
+																s.alphaRawPrev[riDz1:riDz2] == inp.alphaDz
 															),
-															s.bz[inp.riDz1:inp.riDz2] > inp.threshFactor*np.abs(sg.bz0[inp.riDz1:inp.riDz2])
+															s.bz[riDz1:riDz2] > inp.threshFactor*np.abs(sg.bz0[riDz1:riDz2])
 														)
-	#print(deadOnes[inp.riDz1:inp.riDz2])
-	# outside inp.riDz2 is always active
-	activeOnes[inp.riDz2:inp.nr]  = 1.0
+	'''	
+	#print(deadOnes[riDz1:riDz2])
+	# outside riDz2 is always active
+	activeOnes[riDz2:inp.nr]  = 1.0
 	#print(s.alphaRawPrev)
 	#print(activeOnes)
 	#print(deadOnes)
@@ -306,7 +312,7 @@ class DynamicGrid:
 				self.alphaSmooth = np.ones_like(sg.r)*inp.alphaMinAz
 			else:
 				self.alphaRaw = np.ones_like(sg.r)*inp.alphaMinAz
-				self.alphaRaw[inp.riDz1:inp.riDz2] = inp.alphaDz
+				self.alphaRaw[riDz1:riDz2] = inp.alphaDz
 				self.alphaSmooth = np.dot(alphaSmoothingMatrix, self.alphaRaw)
 			self.mdot=np.ones_like(sg.r)*inp.mdot0
 			#print(self.alphaSmooth)
