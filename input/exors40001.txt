@@ -1,6 +1,6 @@
 # RUN PARAMS
 runId            40001
-nCycles          20
+nCycles          100
 tWait            5.e0
 tRelax           0
 nOut		         8000
@@ -9,7 +9,7 @@ nOut		         8000
 mStar            1.0
 rStar            2.0
 bStar            1.e3
-tFlip            1.e1
+tCycle           2.e1
 
 # GRID INFO
 gridId           7005
@@ -20,8 +20,8 @@ rOut		         4.5
 rMax		         5.0
 
 # DISK PHYSICAL PARAMS
-riDz1            0
-mdot0            1.e-8
+riDz1            400
+mdot0            1.e-7
 alphaMaxAz       4.e-2  
 alphaMinAz       4.e-2
 alphaDz          1.e-4
@@ -35,11 +35,9 @@ halfFirstCycle   1
 
 # PROBABLY DON'T CHANGE THESE 
 courantNo        0.05
-bz0option        0
 bz0index         -0.5
 sig0option       0
 sig0index        0.0
 riDz2            10000
-riDrive          10000
 sigBcFactor      0.9935
 

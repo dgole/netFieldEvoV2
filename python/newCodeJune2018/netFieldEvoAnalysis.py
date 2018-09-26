@@ -18,6 +18,7 @@ from matplotlib.pylab import *
 from mpl_toolkits.axes_grid1 import host_subplot
 from matplotlib.colors import LogNorm
 import matplotlib.colors as colors
+import functionLib as lib
 
 m.rcParams['text.usetex'] = True
 m.rcParams['text.latex.unicode'] = True
@@ -41,18 +42,17 @@ m.rcParams['ytick.minor.width'] = m.rcParams['xtick.minor.width']
 # if it acts on the object make it a function, ie plotting data
 # functions add plots to a figure but don't export
 
-# make this read input file as well
-
 tWait = 5.0
 
 class Data:
 	def __init__(self, path, savePath=None, nRead=None):
 		print("initializing data structure from " + str(path))
-		self.path= path
-		sgrid = np.load(self.path+"sgrid.npy")
-		dgrid = np.load(self.path+"dgrid.npy")
-		state = np.load(self.path+"state.npy")
-		time  = np.load(self.path+"time.npy")
+		self.path = path
+		self.inp  = 
+		sgrid     = np.load(self.path+"sgrid.npy")
+		dgrid     = np.load(self.path+"dgrid.npy")
+		state     = np.load(self.path+"state.npy")
+		time      = np.load(self.path+"time.npy" )
 		if nRead is not None:
 			sgrid = sgrid[0:nRead]
 			dgrid = dgrid[0:nRead]
