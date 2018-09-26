@@ -128,6 +128,11 @@ def timeScalesPlot(do, figNum=0):
 	plt.ylabel("timescale (years)", fontdict=fontLabels)
 	plt.xlabel("r (AU)"           , fontdict=fontLabels)
 	
+def profile(do, col, n, figNum=0):
+	plt.figure(figNum)
+	plt.loglog(do.r, do.data[col][n,:])
+	plt.xlabel('r (AU)')
+	plt.ylabel(do.header[col])
 
 
 

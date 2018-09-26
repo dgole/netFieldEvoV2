@@ -307,7 +307,7 @@ class State:
 class DynamicGrid:
 	def __init__(self, sg, s, initialize=0):
 		if initialize==1:
-			if inp.bInitScale < 0.0: 
+			if inp.bInitScale > 0.0: 
 				self.alphaRaw = np.ones_like(sg.r)*inp.alphaMinAz
 				self.alphaSmooth = np.ones_like(sg.r)*inp.alphaMinAz
 			else:

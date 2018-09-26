@@ -67,39 +67,55 @@ do = reader.Data("../../output/run" + str(idNum) + "/")
 reader.timeScalesPlot(do)
 plt.savefig(do.savePath + "timeScales.png", bbox_inches='tight'); plt.clf()
 
-fig  = plt.figure(figsize=(24, 12))
-gs   = gridspec.GridSpec(nrows=2, ncols=2, height_ratios=[1, 1])
+
+
+# multiple ST plots
+fig  = plt.figure(figsize=(11, 12))
+gs   = gridspec.GridSpec(nrows=3, ncols=2, height_ratios=[1, 1, 1], width_ratios=[1, 0.02])
 ax   = []
-for n in range(2):
-	ax.append(fig.add_subplot(gs[n, 0]))
+cax  = []
+for n in range(3):
+	ax .append(fig.add_subplot(gs[n, 0]))
+	cax.append(fig.add_subplot(gs[n, 1]))
 
 extent = [0, do.tmax, np.log10(do.rmin), np.log10(do.rmax)]
-aspect = 1.5*do.nt/do.nr
+aspect = 0.3*(do.tmax)/(np.log10(do.rmax)-np.log10(do.rmin))
 
-ax[0].imshow(
-						 np.transpose(np.fliplr(do.data[12])), 
-						 extent=extent,
-						 aspect=aspect, 
-						 cmap=plt.get_cmap('coolwarm'),
-						 norm=colors.SymLogNorm(linthresh=0.01, linscale=1.0, vmin=-10.0, vmax=10.0)
-					   )
+im = ax[0].imshow(
+						      np.transpose(np.fliplr(do.data[12])), 
+						      extent=extent,
+				      		aspect=aspect, 
+				    		  cmap=plt.get_cmap('coolwarm'),
+						      norm=colors.SymLogNorm(linthresh=0.01, linscale=1.0, vmin=-10.0, vmax=10.0)
+					        )
 ax[0].set_ylabel('log(r) (AU)')
-ax[0].set_xlabel('t (years)')
 ax[0].set_title(do.header[12])
+fig.colorbar(im, cax=cax[0], orientation='vertical')
+#, ticks=[-1.e-1, -1.e-3, 0, 1.e-3, 1.e-1])
 
-ax[1].imshow(
-						 np.transpose(np.fliplr(do.data[0])), 
-						 extent=extent,
-						 aspect=aspect,  
-						 cmap=plt.get_cmap('viridis'),
-						 )
+im = ax[1].imshow(
+		       			  np.transpose(np.fliplr(do.data[0])), 
+		 				      extent=extent,
+						      aspect=aspect,  
+						      cmap=plt.get_cmap('viridis'),
+						      )
 ax[1].set_ylabel('log(r) (AU)')
-ax[1].set_xlabel('t (years)')
 ax[1].set_title(do.header[0])
+fig.colorbar(im, cax=cax[1], orientation='vertical')
+
+im = ax[2].imshow(
+						      np.transpose(np.fliplr(do.data[15])), 
+					        extent=extent,
+						      aspect=aspect,  
+						      cmap=plt.get_cmap('viridis'),
+						      )
+ax[2].set_ylabel('log(r) (AU)')
+ax[2].set_xlabel('t (years)')
+ax[2].set_title(do.header[15])
+fig.colorbar(im, cax=cax[2], orientation='vertical')
 
 plt.savefig(do.savePath + "multiPannel.png", bbox_inches='tight')
 
-print(do.data[0][10,10])
 
 
 
