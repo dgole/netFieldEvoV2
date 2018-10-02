@@ -1,0 +1,18 @@
+runId            1103
+tmax             1.e2
+gridId           3002
+rIn              1.0
+rOut             10.0
+bInitScale       1.e-1
+mdot0            1.e-1
+bz0index         -0.5       
+sigBcFactor      1.0
+innerAdvBc       1
+innerDiffBc      1
+outerAdvBc       1
+outerDiffBc      0
+
+
+
+
+

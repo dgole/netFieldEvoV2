@@ -1,0 +1,43 @@
+# RUN PARAMS
+runId            40000
+nCycles          20
+tWait            5.e1
+tRelax           0
+nOut		         8000
+
+# STAR PARAMS
+mStar            1.0
+rStar            2.0
+bStar            -1.e3
+tCycle           2.e1
+
+# GRID INFO
+gridId           7005
+nr               400
+rMin             0.05
+rIn              0.07 
+rOut		         4.5
+rMax		         5.0
+
+# DISK PHYSICAL PARAMS
+rDz1             0.2
+mdot0            1.e-7
+alphaMaxAz       4.e-2  
+alphaMinAz       4.e-2
+alphaDz          1.e-4
+bInitScale       -1.e-2
+
+# ARTIFICIAL PHYSICS
+threshFactor     0.0
+nSmooth          5
+rampUp           0
+halfFirstCycle   1
+
+# PROBABLY DON'T CHANGE THESE 
+courantNo        0.1
+bz0index         -0.5
+sig0option       0
+sig0index        0.0
+rDz2             10000
+sigBcFactor      0.9935
+
