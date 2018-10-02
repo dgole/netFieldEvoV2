@@ -21,7 +21,7 @@ import matplotlib.gridspec as gridspec
 import matplotlib.colors as colors
 import functionLib as lib
 
-m.rcParams['text.usetex'] = True
+#m.rcParams['text.usetex'] = True
 m.rcParams['text.latex.unicode'] = True
 font = {'family' : 'normal', 'weight' : 'bold', 'size'   : 16}
 fontLabels = {'family' : 'normal', 'weight' : 'bold', 'size'   : 20}
@@ -32,7 +32,7 @@ m.rcParams['xtick.major.width'] = 1.5
 m.rcParams['xtick.minor.size']  = 4
 m.rcParams['xtick.minor.width'] = 1
 
-m.rcParams['ytick.major.size']  = m.rcParams['xtick.major.size'] 
+m.rcParams['ytick.major.size']  = m.rcParams['xtick.major.size']
 m.rcParams['ytick.major.width'] = m.rcParams['xtick.major.width']
 m.rcParams['ytick.minor.size']  = m.rcParams['xtick.minor.size']
 m.rcParams['ytick.minor.width'] = m.rcParams['xtick.minor.width']
@@ -76,29 +76,29 @@ class Data:
 		self.rmax    = self.r.max()
 		self.rmin    = self.r.min()
 		#self.pdfName = PdfPages(self.savePath + "/plots.pdf")
-		self.header  = [r"$\alpha$", 
-										r"$h/r$", 
-                    r"$T_c^4$", 
-                    r"$T_disk^4$", 
+		self.header  = [r"$\alpha$",
+										r"$h/r$",
+                    r"$T_c^4$",
+                    r"$T_disk^4$",
                     r"$c_s$",
-										r"$\rho$", 
-                    r"$\kappa_R$", 
-                    r"$\nu$", 
-                    r"$\tau$", 
-                    r"$\dot{M}$", 
-                    r"$v_{adv}$", 
-                    r"$v_{diff}$", 
-                    r"$B_z$", 
-                    r"$B_{rs}$", 
-                    r"$\psi$", 
-                    r"$\Sigma$", 
-                    r"$\beta$"]  		
-		self.data.append(self.data[13]/self.data[12]) 
-		self.header.append(r"$B_{rs}/B_z$")	
+										r"$\rho$",
+                    r"$\kappa_R$",
+                    r"$\nu$",
+                    r"$\tau$",
+                    r"$\dot{M}$",
+                    r"$v_{adv}$",
+                    r"$v_{diff}$",
+                    r"$B_z$",
+                    r"$B_{rs}$",
+                    r"$\psi$",
+                    r"$\Sigma$",
+                    r"$\beta$"]
+		self.data.append(self.data[13]/self.data[12])
+		self.header.append(r"$B_{rs}/B_z$")
 		self.data.append(self.data[10]/self.data[11])
 		self.header.append(r"$Pr_{eff}$")
 		self.data.append(-self.r/self.data[10])
-		self.header.append(r"$t_{adv}$")		
+		self.header.append(r"$t_{adv}$")
 		self.data.append(self.r/self.data[11])
 		self.header.append(r"$v_{adv}$")
 		self.data.append((3.0/4.0)*self.data[9]*np.square(self.Omega)*self.r*self.dr)
@@ -106,7 +106,7 @@ class Data:
 		self.lum     = np.sum(self.data[21], axis=1)/np.sum(self.data[21][self.gettindex(self.inp.tWait)])
 		self.logLam  = np.linspace(-10,10,num=1000)
 		self.lam     = np.power(10.0, self.logLam)
-			
+
 	def getrindex(self, r1):
 		return (np.abs(self.r-r1)).argmin()
 
@@ -127,41 +127,9 @@ def timeScalesPlot(do, figNum=0):
 	plt.legend(bbox_to_anchor=(1.02, 1), loc=2, borderaxespad=0.)
 	plt.ylabel("timescale (years)", fontdict=fontLabels)
 	plt.xlabel("r (AU)"           , fontdict=fontLabels)
-	
+
 def profile(do, col, n, figNum=0):
 	plt.figure(figNum)
 	plt.loglog(do.r, do.data[col][n,:])
 	plt.xlabel('r (AU)')
 	plt.ylabel(do.header[col])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
