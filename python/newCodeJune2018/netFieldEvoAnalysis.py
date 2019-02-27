@@ -46,8 +46,14 @@ class Data:
 	def __init__(self, path, savePath=None, nRead=None):
 		print("initializing data structure from " + str(path))
 		self.path = path
-		self.inFileName = "exors"+str(sys.argv[1])+".txt"
-		self.inp  = lib.InputFile(self.path+self.inFileName)
+		paramFileName = self.path+"params.txt"
+		read = np.asarray(np.genfromtxt(paramFileName, dtype=str))
+		paramList = []
+		for i in range(read.shape[0]):
+			paramList.append(read[i])
+		print(read)
+		print(paramList)
+		self.inp  = lib.InputFile(int(paramList[0]), float(paramList[1]), float(paramList[2]), float(paramList[3]), float(paramList[4]), float(paramList[5]))
 		sgrid     = np.load(self.path+"sgrid.npy")
 		dgrid     = np.load(self.path+"dgrid.npy")
 		state     = np.load(self.path+"state.npy")
@@ -104,6 +110,7 @@ class Data:
 		self.data.append((3.0/4.0)*self.data[9]*np.square(self.Omega)*self.r*self.dr)
 		self.header.append("dFlux")
 		self.lum     = np.sum(self.data[21], axis=1)/np.sum(self.data[21][self.gettindex(self.inp.tWait)])
+		self.lum[0]  = None
 		self.logLam  = np.linspace(-10,10,num=1000)
 		self.lam     = np.power(10.0, self.logLam)
 
@@ -114,16 +121,84 @@ class Data:
 		return (np.abs(self.t-t1)).argmin()
 
 
+
+
+class MultiPannel:
+	def __init__(self, nRows=4, nCols=2, figSize=(11,13), widthRatios=[1,0.02], tmin=0, tmax=None, doExample=None):
+		if tmax==None: self.tmax=doExample.tmax
+		else         : self.tmax=tmax
+		self.tmin=tmin
+		self.nRows = nRows; self.nCols=nCols; self.figSize=figSize; 
+		self.fig   = plt.figure(figsize=self.figSize)
+		self.gs    = gridspec.GridSpec(nrows=nRows, ncols=2, height_ratios=np.ones(nRows), width_ratios=widthRatios)
+		self.ax    = []
+		self.cax   = []
+		for n in range(self.nRows):
+			if n==0:	self.ax.append(self.fig.add_subplot(self.gs[n, 0]))
+			else   :  self.ax.append(self.fig.add_subplot(self.gs[n, 0], sharex=self.ax[0]))
+			self.cax.append(self.fig.add_subplot(self.gs[n, 1]))
+
+	def addImshowBz(self, axNum, do, tmin=0, tmax=None):
+		tiMin = do.gettindex(self.tmin)
+		tiMax = do.gettindex(self.tmax)
+		if tmax==None: tmax=do.tmax
+		extent = [self.tmin, self.tmax, np.log10(do.rmin), np.log10(do.rmax)]
+		aspect = 0.3*(self.tmax-self.tmin)/(np.log10(do.rmax)-np.log10(do.rmin))
+		im     = self.ax[axNum].imshow(
+						    	    		    		 np.transpose(np.fliplr(do.data[12][tiMin:tiMax])),
+								    		           extent=extent,
+								  	  	           aspect=aspect,
+										               cmap=plt.get_cmap('coolwarm'),
+										               norm=colors.SymLogNorm(linthresh=0.01, linscale=1.0, vmin=-1.0, vmax=1.0)
+									                 )
+		self.ax[axNum].set_ylabel('log(r) (AU)')
+		self.ax[axNum].set_title(do.header[12])
+		self.ax[axNum].axhline(np.log10(do.inp.rIn), color='k')
+		self.ax[axNum].axhline(np.log10(do.inp.rDz1), color='r')
+		self.fig.colorbar(im, cax=self.cax[axNum], orientation='vertical')
+
+	def addImshowOther(self, axNum, do, col):
+		tiMin = do.gettindex(self.tmin)
+		tiMax = do.gettindex(self.tmax)
+		extent = [self.tmin, self.tmax, np.log10(do.rmin), np.log10(do.rmax)]
+		aspect = 0.3*(self.tmax-self.tmin)/(np.log10(do.rmax)-np.log10(do.rmin))
+		im     = self.ax[axNum].imshow(
+						    	    		    		 np.transpose(np.fliplr(do.data[col][tiMin:tiMax])),
+								    		           extent=extent,
+								  	  	           aspect=aspect,
+										               cmap=plt.get_cmap('viridis'),
+										               norm=colors.LogNorm()
+									                 )
+		self.ax[axNum].set_ylabel('log(r) (AU)')
+		self.ax[axNum].set_title(do.header[col])
+		self.ax[axNum].axhline(np.log10(do.inp.rIn), color='k')
+		self.ax[axNum].axhline(np.log10(do.inp.rDz1), color='r')
+		self.fig.colorbar(im, cax=self.cax[axNum], orientation='vertical')
+
+	def addLum(self, axNum, do):
+		tiMin = do.gettindex(self.tmin)
+		tiMax = do.gettindex(self.tmax)
+		self.ax[axNum].semilogy(do.t[tiMin:tiMax], do.lum[tiMin:tiMax])
+		self.ax[axNum].set_xlim(self.tmin, self.tmax)
+		self.ax[axNum].set_xlabel('t (years)')
+		self.ax[axNum].set_ylabel('Luminosity')
+
+
+
+
+
+
+
 def timeScalesPlot(do, figNum=0):
 	plt.figure(figNum)
 	n1=1
 	plt.loglog(do.r, do.tOrbit, label="orbital", color='k')
-	plt.loglog(do.r, do.data[19][n1], label="advection, dead", color='b', linestyle='--')
-	plt.loglog(do.r, do.data[20][n1], label="diffusion, dead", color='b')
-	#plt.loglog(do.r, do.data[20][n2]*10, label="advection, active", color='r', linestyle='--')
+	plt.loglog(do.r, do.data[19][n1], label="advection", color='b')
+	plt.loglog(do.r, do.data[20][n1], label="diffusion", color='r')
+	#plt.loglog(do.r, do.data[20][n2], label="advection, active", color='r', linestyle='--')
 	#plt.loglog(do.r, do.data[20][n2], label="diffusion, active", color='r')
-	plt.xlim(do.rmin, do.rmax)
-	plt.ylim(1.e-2, 1.e7)
+	plt.xlim(do.inp.rIn, do.inp.rOut)
+	plt.ylim(1.e-2, 1.e6)
 	plt.legend(bbox_to_anchor=(1.02, 1), loc=2, borderaxespad=0.)
 	plt.ylabel("timescale (years)", fontdict=fontLabels)
 	plt.xlabel("r (AU)"           , fontdict=fontLabels)
@@ -133,3 +208,21 @@ def profile(do, col, n, figNum=0):
 	plt.loglog(do.r, do.data[col][n,:])
 	plt.xlabel('r (AU)')
 	plt.ylabel(do.header[col])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

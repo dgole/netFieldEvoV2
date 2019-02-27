@@ -8,9 +8,15 @@ from shutil import copyfile
 import functionLib as lib
 
 # process input file
-inPath     = "../../input/"
-inFileName = "exors"+str(sys.argv[1])+".txt"
-inp        = lib.InputFile(inPath+inFileName)
+#inPath     = "../../input/"
+#inFileName = "exors"+str(sys.argv[1])
+
+inpArgs    = sys.argv[1:]
+inp        = lib.InputFile(int(sys.argv[1]), float(sys.argv[2]), float(sys.argv[3]), float(sys.argv[4]), float(sys.argv[5]), float(sys.argv[6]))
+
+
+
+
 
 tmax    = inp.tWait + inp.nCycles * inp.tCycle + inp.tRelax
 tmax1   = inp.tWait + inp.nCycles * inp.tCycle
@@ -27,15 +33,49 @@ innerDiffBc = 1
 outerAdvBc  = 1 
 outerDiffBc = 1
 
+
+
+
+
 tempGrid = np.loadtxt("../../fmatrix/outGrid_" + str(inp.gridId) + ".csv", delimiter=',')
-for i in range(inp.nr):
-	print(str(i) + ", " + str(tempGrid[i]))
-for i in range(inp.nr):
-	if tempGrid[i]:
-		if tempGrid[i]<inp.rIn:
-			riBuffer1=i+1
-		if tempGrid[i]<inp.rOut:
-			riBuffer2=i+1			
+nrOgGrid = len(tempGrid)
+#for i in range(len(tempGrid)):
+#	print(str(i) + ", " + str(tempGrid[i]))
+
+riMinReal = (np.abs(tempGrid-inp.rMin)).argmin()
+rMinReal  = tempGrid[riMinReal]
+riInReal  = (np.abs(tempGrid-inp.rIn)).argmin()
+rInReal   = tempGrid[riInReal]
+riOutReal = (np.abs(tempGrid-inp.rOut)).argmin()
+rOutReal  = tempGrid[riOutReal]
+riMaxReal = (np.abs(tempGrid-inp.rMax)).argmin()
+rMaxReal  = tempGrid[riMaxReal]
+
+tempGrid2 = tempGrid[riMinReal:riMaxReal+1]
+
+nrReal    = len(tempGrid2)
+
+
+riDz1    = (np.abs(tempGrid2-inp.rDz1)).argmin()
+#if riDz1<20: riDz1+=inp.nSmooth+1
+riDz2    = (np.abs(tempGrid2-inp.rDz2)).argmin()
+
+#print(riMinReal, rMinReal)
+#print(riInReal,  rInReal)
+#print(riOutReal, rOutReal)
+#print(riMaxReal, rMaxReal)
+#print(nrReal)
+#print(riDz1)
+#print(riDz2)
+
+for i in range(len(tempGrid2)):
+	if tempGrid2[i]<rInReal:	 riBuffer1=i+1
+	if tempGrid2[i]<rOutReal:  riBuffer2=i+1			
+
+print(tempGrid2.shape)
+
+
+
 mu          = 1.0
 mp          = 1.0
 kr0         = 1.0
@@ -47,11 +87,17 @@ rStarAu     = inp.rStar * 0.00465
 
 savePath = "../../output/run"+str(inp.runId)+"/"
 if not os.path.exists(savePath): os.makedirs(savePath)
-copyfile(inPath+inFileName, savePath+inFileName) 
+inpArgFile = open(savePath+"params.txt", "w")
+for thing in inpArgs:
+	inpArgFile.write(thing)
+	inpArgFile.write('\n')
+inpArgFile.close()
 
 
-riDz1 = (np.abs(tempGrid-inp.rDz1)).argmin()
-riDz2 = (np.abs(tempGrid-inp.rDz2)).argmin()
+
+
+
+
 
 
 
@@ -65,8 +111,13 @@ def getBz0(sg):
 	return bz0
 
 def getStellarDipole(sg):
-	b = inp.bStar*np.power(sg.r/rStarAu  , -3.0)
-	return b
+	b                 = inp.bStar*np.power(sg.r/rStarAu  , -3.0)
+	bFlux             = b * sg.r * sg.dr
+	bFluxTot          = np.sum(bFlux)
+	bFluxPerBuffer    = bFluxTot / float(riBuffer1)
+	bAdd              = np.zeros_like(b)
+	bAdd[0:riBuffer1] = bFluxPerBuffer / (sg.r[0:riBuffer1]*sg.dr[0:riBuffer1])
+	return bAdd
 
 def getStellarDipoleRampUp(sg, teff):
 	#bStar1 = inp.bStar * (teff/(tmax-inp.tWait))
@@ -75,19 +126,19 @@ def getStellarDipoleRampUp(sg, teff):
 	return b
 
 # alpha calculation 
-alphaSmoothingMatrix = np.zeros([inp.nr,inp.nr])
+alphaSmoothingMatrix = np.zeros([nrReal,nrReal])
 if inp.nSmooth > 0:
-	for i in range(inp.nr):
+	for i in range(nrReal):
 		if i<riBuffer1:
 			alphaSmoothingMatrix[i,riBuffer1:riBuffer1+inp.nSmooth]=1.0
 		elif riBuffer1<=i and i<riBuffer2:
 			alphaSmoothingMatrix[i,max(i-inp.nSmooth,riBuffer1):min(i+inp.nSmooth+1,riBuffer2)]=1.0
-		elif riBuffer2<=i and i<inp.nr:
+		elif riBuffer2<=i and i<nrReal:
 			alphaSmoothingMatrix[i,riBuffer2-inp.nSmooth:riBuffer2] = 1.0
 else:
-	for i in range(inp.nr):
+	for i in range(nrReal):
 		alphaSmoothingMatrix[i,i]=1.0
-for i in range(inp.nr):
+for i in range(nrReal):
 	alphaSmoothingMatrix[i]=alphaSmoothingMatrix[i]/np.sum(alphaSmoothingMatrix[i])
 def getDzEdgeIndex(dg):
 	return (np.abs(dg.Tc4-Tdz4)).argmin()
@@ -107,7 +158,6 @@ def getAlpha(sg, s):
 	deadOnes[riDz1:riDz2]   = s.beta[riDz1:riDz2]<0.0
 	# if inbetween, dead if previously dead, active if previously active
 	# active 
-	'''
 	activeOnes[riDz1:riDz2] = np.logical_or( 
 															np.logical_and(
 																np.logical_and(
@@ -116,11 +166,10 @@ def getAlpha(sg, s):
 															),
 																s.alphaRawPrev[riDz1:riDz2] == inp.alphaMinAz
 															),
-															s.bz[riDz1:riDz2] < -inp.threshFactor*np.abs(sg.bz0[riDz1:riDz2])
+															s.bz[riDz1:riDz2] > inp.threshFactor*np.abs(sg.bz0[riDz1:riDz2])
 														)
-	'''	
+		
 	# dead
-	''' 
 	deadOnes[riDz1:riDz2] = np.logical_or( 
 															np.logical_and(
 																np.logical_and(
@@ -129,12 +178,12 @@ def getAlpha(sg, s):
 																),
 																s.alphaRawPrev[riDz1:riDz2] == inp.alphaDz
 															),
-															s.bz[riDz1:riDz2] > inp.threshFactor*np.abs(sg.bz0[riDz1:riDz2])
+															s.bz[riDz1:riDz2] < -inp.threshFactor*np.abs(sg.bz0[riDz1:riDz2])
 														)
-	'''	
+		
 	#print(deadOnes[riDz1:riDz2])
 	# outside riDz2 is always active
-	activeOnes[riDz2:inp.nr]  = 1.0
+	activeOnes[riDz2:nrReal]  = 1.0
 	#print(s.alphaRawPrev)
 	#print(activeOnes)
 	#print(deadOnes)
@@ -167,7 +216,7 @@ def getAddToBz(sg, dg, s):
 			elif (0.50*inp.tCycle) < tModCycle < (0.75*inp.tCycle):	addToBz = -getStellarDipoleRampUp(sg, teff)*(dg.dt/(inp.tCycle/4.0))
 			else                                          : addToBz =  np.zeros_like(getStellarDipoleRampUp(sg, teff))
 	#if teff < 10.0*inp.tCycle/2.0 :	return addToBz/2.0
-	if teff < inp.tCycle/2.0 and inp.halfFirstCycleOption==1 :	return addToBz/2.0
+	if teff < inp.tCycle/2.0 and inp.firstCycleFactor>0 :	return addToBz*inp.firstCycleFactor
 	#else: return addToBz
 	#if counter%100==0: print((getStellarDipoleRampUp(sg, teff))[10]);
 	counter+=1;
@@ -205,13 +254,13 @@ def spaceDeriv(sg, a):
 	da[sg.nr-1] = (a[sg.nr-1] - a[sg.nr-2]) 
 	return da/sg.dr
 def xIn(r):
-	return (r-inp.rMin)/(inp.rIn-inp.rMin)
+	return (r-rMinReal)/(rInReal-rMinReal)
 def xOut(r):
-	return (r-inp.rMax)/(inp.rOut-inp.rMax)
+	return (r-rMaxReal)/(rOutReal-rMaxReal)
 def smooth(x):
 	return (3.0*x*x)/(1.0+2.0*x*x*x)
-summingHelperMatrix = np.zeros([inp.nr,inp.nr])
-for i in range(inp.nr):
+summingHelperMatrix = np.zeros([nrReal,nrReal])
+for i in range(nrReal):
 	summingHelperMatrix[i,0:i]=1.0
 def getPsiFromBz(sg, dg, bz):
 	temp = sg.r * sg.dr * bz
@@ -222,7 +271,7 @@ def getrindex(sg, r1):
 def getTimeStep(sg, dg, s):
 	dtAdv  = np.amin(np.abs(sg.dr/dg.vAdv))
 	dtDiff = np.amin(np.abs(2.0*sg.dr/(3.14159*dg.vDiff)))
-	dt = min(dtAdv, dtDiff)
+	dt = min(dtAdv, dtDiff, 0.1)
 	return dt*inp.courantNo
 
 	
@@ -230,20 +279,22 @@ def getTimeStep(sg, dg, s):
 # static grid object
 class StaticGrid:
 	def __init__(self, idNum):
-		self.r = np.loadtxt("../../fmatrix/outGrid_" + str(idNum) + ".csv", delimiter=',')
+		self.rMin  = rMinReal
+		self.rIn   = rInReal
+		self.rOut  = rOutReal
+		self.rMax  = rMaxReal
+		self.rTemp = np.loadtxt("../../fmatrix/outGrid_" + str(idNum) + ".csv", delimiter=',')
+		self.r     = self.rTemp[riMinReal:riMaxReal+1]
 		self.rootr = np.power(self.r, 0.5)
-		self.x = self.rootr
-		self.dx = np.zeros_like(self.r)
-		self.nr = len(self.r)		
-		self.dr = np.zeros_like(self.r)
-		self.rMin = inp.rMin
-		self.rIn = inp.rIn
-		self.rOut = inp.rOut
-		self.rMax = inp.rMax
+		self.x     = self.rootr
+		self.dx    = np.zeros_like(self.r)
+		self.nr    = len(self.r)		
+		self.dr    = np.zeros_like(self.r)
 		self.Omega = rootGM*np.power(self.r,-1.5)
-		self.Omega2 = np.power(self.Omega,2.0)
-		self.fInvMatrix = np.loadtxt("../../fmatrix/fmatrixInvFlat_" + str(idNum) +".csv", delimiter=',')
-		self.fInvMatrix = np.reshape(self.fInvMatrix, [self.nr, self.nr])
+		self.Omega2= np.power(self.Omega,2.0)
+		self.fInvMatrixTemp = np.loadtxt("../../fmatrix/fmatrixInvFlat_" + str(idNum) +".csv", delimiter=',')
+		self.fInvMatrixTemp = np.reshape(self.fInvMatrixTemp, [nrOgGrid, nrOgGrid])
+		self.fInvMatrix     = self.fInvMatrixTemp[riMinReal:riMaxReal+1, riMinReal:riMaxReal+1]
 		self.t = [0.0];
 		self.bz0 = getBz0(self)
 		for i in range(self.nr):
@@ -256,25 +307,25 @@ class StaticGrid:
 			elif i==self.nr-1: self.dx[i]=(self.x[i]-self.x[i-1])
 		self.applyAdvBc = np.zeros_like(self.r)		
 		for i in range(self.nr):
-			if self.r[i]<self.rIn:
+			if self.r[i]<=self.rIn:
 				if innerAdvBc==-1: self.applyAdvBc[i] = 0.0
 				if innerAdvBc== 0: self.applyAdvBc[i] = smooth(xIn(self.r[i]))
 				if innerAdvBc== 1: self.applyAdvBc[i] = 1.0 
 			elif self.rIn<self.r[i] and self.r[i]<self.rOut: 
 				self.applyAdvBc[i] = 1.0
-			elif self.rOut<self.r[i]:
+			elif self.rOut<=self.r[i]:
 				if outerAdvBc==-1: self.applyAdvBc[i] = 0.0
 				if outerAdvBc== 0: self.applyAdvBc[i] = smooth(xOut(self.r[i]))
 				if outerAdvBc== 1: self.applyAdvBc[i] = 1.0 
 		self.applyDiffBc = np.zeros_like(self.r)		
 		for i in range(self.nr):
-			if self.r[i]<self.rIn:
+			if self.r[i]<=self.rIn:
 				if innerDiffBc==-1: self.applyDiffBc[i] = 0.0
 				if innerDiffBc== 0: self.applyDiffBc[i] = smooth(xIn(self.r[i]))
 				if innerDiffBc== 1: self.applyDiffBc[i] = 1.0 
 			elif self.rIn<self.r[i] and self.r[i]<self.rOut: 
 				self.applyDiffBc[i] = 1.0
-			elif self.rOut<self.r[i]:
+			elif self.rOut<=self.r[i]:
 				if outerDiffBc==-1: self.applyDiffBc[i] = 0.0
 				if outerDiffBc== 0: self.applyDiffBc[i] = smooth(xOut(self.r[i]))
 				if outerDiffBc== 1: self.applyDiffBc[i] = 1.0 
@@ -322,7 +373,7 @@ class DynamicGrid:
 			self.Tdisk4 = np.power(np.power(2.0,0.75)*np.power(kb,0.25)*np.power(3.14159,0.25)*np.power(self.Tc4,5.0/16.0)*np.power(self.alphaSmooth,0.25)*np.power(inp.mdot0,-0.25)*np.power(mp,-0.25)*np.power(kr0,-0.25)*np.power(mu,-0.25)*np.power(sg.Omega,-0.25),4.0)
 			self.cs     = np.sqrt(inp.mdot0*self.Tdisk4*kr0*sg.Omega/(self.Tc4*self.alphaSmooth)/(8.0*3.14159))
 			self.rho    = (inp.mdot0*sg.Omega2)/(np.sqrt(18.0)*np.power(3.14159,1.5)*self.alphaSmooth*np.power(self.cs,3.0))
-			self.h      = self.cs/sg.Omega
+			self.h      = 2*self.cs/sg.Omega ############# THIS FACTOR OF 2
 			self.kR     = np.sqrt(32.0/3.14159)*self.Tc4/(3.0*self.h*self.Tdisk4*self.rho)
 			self.nu     = self.cs*self.h*self.alphaSmooth
 			self.tau    = 4.0*self.Tc4/(3.0*self.Tdisk4)
@@ -344,7 +395,7 @@ class DynamicGrid:
 			self.Tdisk4 = np.power(np.power(2.0,0.75)*np.power(self.Tc4,0.25)*np.power(3.0,-0.25)*np.power(kr0,-0.25)*np.power(s.sig,-0.25),4.0)
 			self.cs     = np.sqrt( (kb*np.power(self.Tc4,0.25)) / (mp*mu) )
 			self.rho    = 9.0*self.cs*self.alphaSmooth*np.power(s.sig,2.0)*sg.Omega2 / (np.sqrt(128*3.14159)*self.Tdisk4*littleSigma)
-			self.h      = s.sig/(np.sqrt(2.0*3.14159)*self.rho)
+			self.h      = 2*s.sig/(np.sqrt(2.0*3.14159)*self.rho) ############# THIS FACTOR OF 2
 			self.kR     = 8.0*self.Tc4 / ( 3.0*self.Tdisk4*s.sig )
 			self.nu     = self.cs*self.h*self.alphaSmooth
 			self.tau    = 4.0*self.Tc4/(3.0*self.Tdisk4)
@@ -393,6 +444,7 @@ def report(timer, n, t, tmax):
 	sys.stdout.write( str(round(msPerCycle,3)) + " ms per cycle total" + "\n")
 	sys.stdout.write( str(round(msPerCycleRecent,3)) + " ms per cycle recently " + "\n")    
 	sys.stdout.write( str(int(timeRemaining/3600)) + ":" + str(int(timeRemaining%3600/60)) + ":" + str(int((timeRemaining%60))) + " remaining" + "\n") 
+	sys.stdout.write("h/r at 1 AU = " + str(dg.h[(np.abs(sg.r-1.0)).argmin()]) )
 	sys.stdout.flush()
 
 # function to write to file

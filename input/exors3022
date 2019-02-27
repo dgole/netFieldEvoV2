@@ -1,0 +1,34 @@
+runId            3022
+
+starType         medium
+bStar            -5.e2
+tCycle           2.e1
+nCycles          40
+
+rDz1             0.1
+
+
+
+##################################################
+
+tWait            2.e2
+tRelax           0
+nOut		         8000
+gridId           8000
+
+alphaMaxAz       4.e-2
+alphaMinAz       4.e-2
+alphaDz          1.e-3
+bInitScale       -1.e-2
+
+threshFactor     0.0
+nSmooth          5
+rampUp           0
+halfFirstCycle   0
+
+courantNo        0.1
+bz0index         -0.5
+sig0option       0
+sig0index        0.0
+rDz2             10000
+sigBcFactor      0.9935
