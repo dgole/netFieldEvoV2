@@ -27,11 +27,17 @@ plt.xlim(0,1)
 plt.ylim(0,xMax)
 plt.savefig('../diagram2.png'); plt.clf()
 ################################################################################
-fig = plt.figure(figsize=(4,13), dpi=80)
+#fig = plt.figure(figsize=(4,13), dpi=80)
+#ax = []
+#ax.append(plt.subplot2grid((3, 1), (0, 0), rowspan=1))
+#ax.append(plt.subplot2grid((3, 1), (1, 0), rowspan=1))
+#ax.append(plt.subplot2grid((3, 1), (2, 0), rowspan=1))
+################################################################################
+fig = plt.figure(figsize=(13,4), dpi=100)
 ax = []
-ax.append(plt.subplot2grid((3, 1), (0, 0), rowspan=1))
-ax.append(plt.subplot2grid((3, 1), (1, 0), rowspan=1))
-ax.append(plt.subplot2grid((3, 1), (2, 0), rowspan=1))
+ax.append(plt.subplot2grid((1, 3), (0, 0), rowspan=1))
+ax.append(plt.subplot2grid((1, 3), (0, 1), rowspan=1))
+ax.append(plt.subplot2grid((1, 3), (0, 2), rowspan=1))
 ################################################################################
 # plot original stellar dipole
 lam    = np.arange(0, 2*3.2, 0.01)
@@ -70,10 +76,10 @@ ax[2].plot(0.0, 0.0, 'ko', markersize=20 )
 # plot disk
 x = np.arange(xMax*0.75, pltLim, 0.01)
 y = 0.15 * x
-ax[1].fill_between( x, y1=-y, y2=y, color=(0,0,0,0.5))
-ax[1].fill_between(-x, y1=-y, y2=y, color=(0,0,0,0.5))
-ax[2].fill_between( x, y1=-y, y2=y, color=(0,0,0,0.5))
-ax[2].fill_between(-x, y1=-y, y2=y, color=(0,0,0,0.5))
+ax[1].fill_between( x, y1=-y, y2=y, color=(0,0,0,0.2))
+ax[1].fill_between(-x, y1=-y, y2=y, color=(0,0,0,0.2))
+ax[2].fill_between( x, y1=-y, y2=y, color=(0,0,0,0.2))
+ax[2].fill_between(-x, y1=-y, y2=y, color=(0,0,0,0.2))
 ################################################################################
 for thisAx in ax:
 	thisAx.set_aspect('equal')
@@ -81,23 +87,23 @@ for thisAx in ax:
 	thisAx.set_ylim(-pltLim, pltLim)
 	thisAx.get_xaxis().set_visible(False)
 	thisAx.get_yaxis().set_visible(False)
-	thisAx.set_facecolor((0,0,0,0.1))
+	thisAx.set_facecolor((0,0,0,0.05))
 ################################################################################
 ax[0].set_title('Stellar Dipole: Closed Lines')
 ax[1].set_title('Disk Net-Field: Open Lines')
 ax[2].set_title('Star + Disk Fields')
-ax[2].annotate('closed stellar lines \n become open disk lines',
- 			   xy=(xMax*0.9, 0.01),
-			   xytext=(-0.17, -pltLim*0.99))
-ax[2].annotate("",
-            xy=(xMax*0.93, 0.02),
-            xytext=(0.03, -pltLim*0.83),
-            arrowprops=dict(facecolor='black', shrink=0.05, width=2))
-ax[2].annotate("",
-            xy=(-xMax*0.93, 0.02),
-            xytext=(-0.03, -pltLim*0.83),
-            arrowprops=dict(facecolor='black', shrink=0.05, width=2))
+#ax[2].annotate('closed stellar lines \n become open disk lines',
+ 			   #xy=(xMax*0.9, 0.01),
+			   #xytext=(-0.17, -pltLim*0.99))
+#ax[2].annotate("",
+            #xy=(xMax*0.93, 0.02),
+            #xytext=(0.03, -pltLim*0.83),
+            #arrowprops=dict(facecolor='black', shrink=0.05, width=2))
+#ax[2].annotate("",
+            #xy=(-xMax*0.93, 0.02),
+            #xytext=(-0.03, -pltLim*0.83),
+            #arrowprops=dict(facecolor='black', shrink=0.05, width=2))
 ################################################################################
 fig.tight_layout()
-fig.savefig('../diagram.png'); plt.clf()
+fig.savefig('./diagram_horizontal.png'); plt.clf()
 ################################################################################
