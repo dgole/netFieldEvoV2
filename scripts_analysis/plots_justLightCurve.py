@@ -8,6 +8,7 @@ import os
 import math
 from scipy import fftpack as fft
 import sys
+sys.path.append("../python/")
 import netFieldEvoAnalysis as reader
 import resource
 from matplotlib.backends.backend_pdf import PdfPages
@@ -61,7 +62,7 @@ m.rcParams['ytick.minor.width'] = m.rcParams['xtick.minor.width']
 idNum = int(sys.argv[1])
 
 # make data object
-do = reader.Data("../../output/run" + str(idNum) + "/")
+do = reader.Data("../output/run" + str(idNum) + "/")
 
 t1 = float(sys.argv[2])
 t2 = float(sys.argv[3])

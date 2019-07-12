@@ -1,5 +1,6 @@
 ./output
 ./python/__pycahce__
+./python/*.pyc
 ./figs_for_thesis
 ./input
 ./oldInput
