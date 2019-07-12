@@ -4,9 +4,9 @@ This code evolves the net-magnetic-flux and surface density of an accretion disk
 
 #
 
-# Example
+# Example Plots
 Time evolution plot:  
-<img src="./demo_spaceTime.png" width="800" height="1000" />
+<img src="./demo_spaceTime.png" width="578" height="651" />
 
 Array of light curves for various disk/star parameters:  
-<img src="./demo_lightCurves.png" width="800" height="1000" />
+<img src="./demo_lightCurves.png" width="560" height="597" />
