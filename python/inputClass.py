@@ -6,6 +6,7 @@ import resource
 import time
 import matplotlib.pyplot as plt
 
+# define constants
 au = 1.5e13
 G  = 6.67e-8
 sigma=5.67e-5
@@ -16,24 +17,25 @@ days=24.0*60.0*60.0
 
 #runId  mStar  bStar   bInit   mdot0  FCF  tCycle nCycles
 class InputFile:
+	'''
+	Holds all relevant model parameters in an object.
+	Passed to both the model itself and the analysis module.
+	'''
 	def __init__(self, runId, mStar, bInit, mdot0, firstCycleFactor, tCycle, nCycles):
 		self.runId = runId
 		self.mStar = mStar
 		self.tCycle=tCycle
 		self.nCycles=nCycles
 		self.mdot0  = mdot0
-		self.bInitScale = bInit     ###############################
-		self.firstCycleFactor = firstCycleFactor #############################
+		self.bInitScale = bInit
+		self.firstCycleFactor = firstCycleFactor
 		self.gridId=8001
 		self.tWait=50.0
 		self.tRelax=0
 		self.nOut=8000
 		self.alphaMaxAz = 1.e-2
 		self.alphaMinAz = 1.e-2
-		self.alphaDz    = 3.e-4   ################################
-		#self.alphaDz    = 3.e-3
-		#self.bInitScale = -1.e-2  ###############################
-		#self.bInitScale = -1.e-3  ###############################
+		self.alphaDz    = 3.e-4
 		self.threshFactor = 0.0
 		self.nSmooth      = 5
 		self.rampUpOption = 0
@@ -73,17 +75,14 @@ class InputFile:
 		self.rMs  = 7.93e-13 * np.power(np.square(self.bStar) * np.power(self.rStar*Rsun,6) * np.power(self.mdot0*Msun/year,-1) * np.power(self.mStar*Msun,-0.5), 2.0/7.0)
 		self.rCo  = np.power(G*(self.mStar*Msun)*np.square(self.pStar*days)/(4*3.1415*3.1415), 1.0/3.0) / au
 
-		self.rIn = min(self.rMs, self.rCo) #####################
-		#self.rIn = (self.rMs + self.rCo) / 2.0
+		self.rIn = min(self.rMs, self.rCo)
 
 		self.rDz1 = np.power(1000./767.,-10./9.)*np.power(self.alphaMaxAz/1.e-2,-2./9.)*np.power(self.mdot0/1.e-7,4./9.)*np.power(self.mStar/1.0,1./3.)
 		if self.rDz1 < self.rIn: self.rDz1 = self.rIn
 
 		self.rMin = self.rIn *(1.0/1.25)
-		self.rOut = min(self.rIn * 100.0, 5.0/1.25) ################
+		self.rOut = min(self.rIn * 100.0, 5.0/1.25)
 		self.rMax = self.rOut*(1.25)
-
-		#self.rDz1 = self.rMax #####################################################
 
 		tDiff0 = 308
 		tDiffRdz = tDiff0 * np.power(1000./767.,-29./18.) * np.power(self.alphaMaxAz/1.e-2,-11./9.) * np.power(self.mStar/1.,1./3.) * np.power(self.mdot0/1.e-7,4./9.)

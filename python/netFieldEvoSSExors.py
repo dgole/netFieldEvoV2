@@ -5,7 +5,7 @@ import sys
 import resource
 import time
 from shutil import copyfile
-import functionLib as lib
+import inputClass as inClass
 import matplotlib.pyplot as plt
 
 # process input file
@@ -13,11 +13,13 @@ import matplotlib.pyplot as plt
 #inFileName = "exors"+str(sys.argv[1])
 
 inpArgs    = sys.argv[1:]
-inp        = lib.InputFile(int(sys.argv[1]), float(sys.argv[2]), float(sys.argv[3]), float(sys.argv[4]), float(sys.argv[5]), float(sys.argv[6]), float(sys.argv[7]))
-
-
-
-
+inp        = inClass.InputFile(int(sys.argv[1]),
+							   float(sys.argv[2]),
+							   float(sys.argv[3]),
+							   float(sys.argv[4]),
+							   float(sys.argv[5]),
+							   float(sys.argv[6]),
+							   float(sys.argv[7]))
 
 tmax    = inp.tWait + inp.nCycles * inp.tCycle + inp.tRelax
 tmax1   = inp.tWait + inp.nCycles * inp.tCycle
@@ -36,9 +38,7 @@ outerDiffBc = 1
 
 
 
-
-
-tempGrid = np.loadtxt("../../fmatrix/outGrid_" + str(inp.gridId) + ".csv", delimiter=',')
+tempGrid = np.loadtxt("../fmatrix/outGrid_" + str(inp.gridId) + ".csv", delimiter=',')
 nrOgGrid = len(tempGrid)
 #for i in range(len(tempGrid)):
 #	print(str(i) + ", " + str(tempGrid[i]))
@@ -61,14 +61,6 @@ riDz1    = (np.abs(tempGrid2-inp.rDz1)).argmin()
 #if riDz1<20: riDz1+=inp.nSmooth+1
 riDz2    = (np.abs(tempGrid2-inp.rDz2)).argmin()
 
-#print(riMinReal, rMinReal)
-#print(riInReal,  rInReal)
-#print(riOutReal, rOutReal)
-#print(riMaxReal, rMaxReal)
-#print(nrReal)
-#print(riDz1)
-#print(riDz2)
-
 for i in range(len(tempGrid2)):
 	if tempGrid2[i]<rInReal:	 riBuffer1=i+1
 	if tempGrid2[i]<rOutReal:  riBuffer2=i+1
@@ -79,13 +71,9 @@ print(tempGrid2.shape)
 
 ################################################################################
 
-#kr0         = 1.0
 kr0         = 2.665*1.e7
-#littleSigma = 1.0
 littleSigma = 8.91*1.e-16
-#kbOverMuMp  = 1.0
 kbOverMuMp  = 0.000135693
-
 
 rootG       = (2.0*3.14159)
 rootGM      = rootG * np.sqrt(inp.mStar)
@@ -93,22 +81,13 @@ rStarAu     = inp.rStar * 0.00465
 
 ################################################################################
 
-
-
-
-savePath = "../../output/run"+str(inp.runId)+"/"
+savePath = "../output/run"+str(inp.runId)+"/"
 if not os.path.exists(savePath): os.makedirs(savePath)
 inpArgFile = open(savePath+"params.txt", "w")
 for thing in inpArgs:
 	inpArgFile.write(thing)
 	inpArgFile.write('\n')
 inpArgFile.close()
-
-
-
-
-
-
 
 
 
@@ -300,7 +279,7 @@ class StaticGrid:
 		self.rIn   = rInReal
 		self.rOut  = rOutReal
 		self.rMax  = rMaxReal
-		self.rTemp = np.loadtxt("../../fmatrix/outGrid_" + str(idNum) + ".csv", delimiter=',')
+		self.rTemp = np.loadtxt("../fmatrix/outGrid_" + str(idNum) + ".csv", delimiter=',')
 		self.r     = self.rTemp[riMinReal:riMaxReal+1]
 		self.rootr = np.power(self.r, 0.5)
 		self.x     = self.rootr
@@ -309,7 +288,7 @@ class StaticGrid:
 		self.dr    = np.zeros_like(self.r)
 		self.Omega = rootGM*np.power(self.r,-1.5)
 		self.Omega2= np.power(self.Omega,2.0)
-		self.fInvMatrixTemp = np.loadtxt("../../fmatrix/fmatrixInvFlat_" + str(idNum) +".csv", delimiter=',')
+		self.fInvMatrixTemp = np.loadtxt("../fmatrix/fmatrixInvFlat_" + str(idNum) +".csv", delimiter=',')
 		self.fInvMatrixTemp = np.reshape(self.fInvMatrixTemp, [nrOgGrid, nrOgGrid])
 		self.fInvMatrix     = self.fInvMatrixTemp[riMinReal:riMaxReal+1, riMinReal:riMaxReal+1]
 		self.t = [0.0];

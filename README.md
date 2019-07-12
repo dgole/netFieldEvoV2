@@ -9,9 +9,9 @@ mathematica: Contians code to set up grids and calculate the f matricies.  Also 
 
 python: The python code-base to run the model and plot the results.  
 
-scripts_run: Scripts that run the models.  
+scripts_run: Scripts (bash) that run the models.  
 
-scripts_analysis: Scripts that make plots.  
+scripts_analysis: Scripts (bash and python) that make plots.  
 
 # Example Plots
 Time evolution plot:  

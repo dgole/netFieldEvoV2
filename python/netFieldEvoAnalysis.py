@@ -19,7 +19,7 @@ from mpl_toolkits.axes_grid1 import host_subplot
 from matplotlib.colors import LogNorm
 import matplotlib.gridspec as gridspec
 import matplotlib.colors as colors
-import functionLib as lib
+import inputClass as inClass
 
 #m.rcParams['text.usetex'] = True
 m.rcParams['text.latex.unicode'] = True
@@ -38,12 +38,10 @@ m.rcParams['ytick.major.width'] = m.rcParams['xtick.major.width']
 m.rcParams['ytick.minor.size']  = m.rcParams['xtick.minor.size']
 m.rcParams['ytick.minor.width'] = m.rcParams['xtick.minor.width']
 
-# import data as an object
-# if the object "does it", make it a method, ie getting data
-# if it acts on the object make it a function, ie plotting data
-# functions add plots to a figure but don't export
-
 class Data:
+	'''
+	Class to read in relevant grid and output files.
+	'''
 	def __init__(self, path, savePath=None, nRead=None):
 		print("initializing data structure from " + str(path))
 		self.path = path
@@ -54,7 +52,7 @@ class Data:
 			paramList.append(read[i])
 		print(read)
 		print(paramList)
-		self.inp  = lib.InputFile(int(paramList[0]), float(paramList[1]), float(paramList[2]), float(paramList[3]), float(paramList[4]), float(paramList[5]), float(paramList[6]))
+		self.inp  = inClass.InputFile(int(paramList[0]), float(paramList[1]), float(paramList[2]), float(paramList[3]), float(paramList[4]), float(paramList[5]), float(paramList[6]))
 		sgrid     = np.load(self.path+"sgrid.npy")
 		dgrid     = np.load(self.path+"dgrid.npy")
 		state     = np.load(self.path+"state.npy")
@@ -82,24 +80,23 @@ class Data:
 		self.nt      = self.t.shape[0]
 		self.rmax    = self.r.max()
 		self.rmin    = self.r.min()
-		#self.pdfName = PdfPages(self.savePath + "/plots.pdf")
 		self.header  = [r"$\alpha$",
-										r"$h/r$",
-                    r"$T_c^4$",
-                    r"$T_disk^4$",
-                    r"$c_s$",
-										r"$\rho$",
-                    r"$\kappa_R$",
-                    r"$\nu$",
-                    r"$\tau$",
-                    r"$\dot{m}$",
-                    r"$v_{adv}$",
-                    r"$v_{diff}$",
-                    r"$B_z$",
-                    r"$B_{rs}$",
-                    r"$\psi$",
-                    r"$\Sigma$",
-                    r"$\beta$"]
+						r"$h/r$",
+						r"$T_c^4$",
+						"$T_disk^4$",
+						r"$c_s$",
+						r"$\rho$",
+						r"$\kappa_R$",
+						r"$\nu$",
+						r"$\tau$",
+						r"$\dot{m}$",
+						r"$v_{adv}$",
+						r"$v_{diff}$",
+						r"$B_z$",
+						r"$B_{rs}$",
+						r"$\psi$",
+						r"$\Sigma$",
+						r"$\beta$"]
 
 		self.data.append(self.data[13]/self.data[12])
 		self.header.append(r"$B_{rs}/B_z$")
@@ -113,16 +110,8 @@ class Data:
 		self.data.append(self.r/self.data[11])
 		self.header.append(r"$v_{adv}$")
 
-		#self.data.append((3.0/4.0)*self.data[9]*np.square(self.Omega)*self.r*self.dr)
-		#self.header.append("dFlux")
-
 		self.data.append(self.data[3]*self.r*self.dr)
 		self.header.append("dFlux")
-		#print("############ dflux col num is " + str(len(self.data))  )
-		#print(self.r)
-		#print(self.dr)
-		#print(self.r[1]-self.r[0])
-		#print(self.r[100]-self.r[99])
 		self.lum     = np.sum(self.data[21], axis=1)/np.sum(self.data[21][self.gettindex(self.inp.tWait)])
 		self.lum[0]  = None
 
@@ -139,6 +128,10 @@ class Data:
 
 
 class MultiPannel:
+	'''
+	Generates a mult-panel space-time plot
+	showing the evolution of various model quantities.
+	'''
 	def __init__(self, nRows=4, nCols=2, figSize=(11,13), widthRatios=[1,0.02], tmin=0, tmax=None, doExample=None):
 		if tmax==None: self.tmax=doExample.tmax
 		else         : self.tmax=tmax
@@ -197,11 +190,6 @@ class MultiPannel:
 		self.ax[axNum].set_xlim(self.tmin, self.tmax)
 		self.ax[axNum].set_xlabel('t (years)')
 		self.ax[axNum].set_ylabel('Luminosity')
-
-
-
-
-
 
 
 def timeScalesPlot(do, figNum=0):
