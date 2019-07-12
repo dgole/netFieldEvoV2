@@ -22,22 +22,22 @@ def adjustX(x, xMax):
 xMax = 0.2
 xIn  = np.arange(0,1,0.05)
 xAdj = adjustX(xIn, xMax)
-plt.plot(xIn, xAdj)
-plt.xlim(0,1)
-plt.ylim(0,xMax)
-plt.savefig('../diagram2.png'); plt.clf()
+#plt.plot(xIn, xAdj)
+#plt.xlim(0,1)
+#plt.ylim(0,xMax)
+#plt.savefig('../diagram2.png'); plt.clf()
 ################################################################################
-#fig = plt.figure(figsize=(4,13), dpi=80)
-#ax = []
-#ax.append(plt.subplot2grid((3, 1), (0, 0), rowspan=1))
-#ax.append(plt.subplot2grid((3, 1), (1, 0), rowspan=1))
-#ax.append(plt.subplot2grid((3, 1), (2, 0), rowspan=1))
-################################################################################
-fig = plt.figure(figsize=(13,4), dpi=100)
+fig = plt.figure(figsize=(4,13), dpi=80)
 ax = []
-ax.append(plt.subplot2grid((1, 3), (0, 0), rowspan=1))
-ax.append(plt.subplot2grid((1, 3), (0, 1), rowspan=1))
-ax.append(plt.subplot2grid((1, 3), (0, 2), rowspan=1))
+ax.append(plt.subplot2grid((3, 1), (0, 0), rowspan=1))
+ax.append(plt.subplot2grid((3, 1), (1, 0), rowspan=1))
+ax.append(plt.subplot2grid((3, 1), (2, 0), rowspan=1))
+################################################################################
+#fig = plt.figure(figsize=(13,4), dpi=100)
+#ax = []
+#ax.append(plt.subplot2grid((1, 3), (0, 0), rowspan=1))
+#ax.append(plt.subplot2grid((1, 3), (0, 1), rowspan=1))
+#ax.append(plt.subplot2grid((1, 3), (0, 2), rowspan=1))
 ################################################################################
 # plot original stellar dipole
 lam    = np.arange(0, 2*3.2, 0.01)
@@ -105,5 +105,5 @@ ax[2].set_title('Star + Disk Fields')
             #arrowprops=dict(facecolor='black', shrink=0.05, width=2))
 ################################################################################
 fig.tight_layout()
-fig.savefig('./diagram_horizontal.png'); plt.clf()
+fig.savefig('./fieldGeo_vertical.png'); plt.clf()
 ################################################################################

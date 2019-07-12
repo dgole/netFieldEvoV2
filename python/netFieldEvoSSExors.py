@@ -4,167 +4,211 @@ import os
 import sys
 import resource
 import time
+from shutil import copyfile
+import functionLib as lib
+import matplotlib.pyplot as plt
 
-# process input file111
-inp = np.asarray(np.genfromtxt("../input/exors"+str(sys.argv[1])+".txt", dtype=str))
-print(inp)
-for i in range(inp.shape[0]):
-	word = inp[i][0]
-	number = inp[i][1]
-	if   word == 'runId'        : runId        = int(number)
-	elif word == 'gridId'       : gridId       = int(number)
-	elif word == 'nr'           : nr           = int(number)
-	elif word == 'rMin'         : rMin         = float(number)
-	elif word == 'rMax'         : rMax         = float(number)
-	elif word == 'rIn'          : rIn          = float(number)
-	elif word == 'rOut'         : rOut         = float(number)
-	elif word == 'rYearNorm'    : rYearNorm    = float(number)
-	elif word == 'tWait'        : tWait        = float(number)
-	elif word == 'tFlip'        : tFlip        = float(number)
-	elif word == 'tRelax'       : tRelax       = float(number)
-	elif word == 'nCycles'      : nCycles      = float(number)
-	elif word == 'nOut'         : nOut         = float(number)
-	elif word == 'courantNo'    : courantNo    = float(number)
-	elif word == 'mdot0'        : mdot0        = float(number)
-	elif word == 'bInitScale'   : bInitScale   = float(number)
-	elif word == 'bz0option'    : bz0option    = int(number)
-	elif word == 'bz0factor'    : bz0factor    = float(number)
-	elif word == 'bz0index'     : bz0index     = float(number)
-	elif word == 'sig0option'   : sig0option   = int(number)
-	elif word == 'sig0index'    : sig0index    = float(number)
-	elif word == 'bStar'        : bStar        = float(number)
-	elif word == 'rStar'        : rStar        = float(number)
-	elif word == 'threshFactor' : threshFactor = float(number)
-	elif word == 'riDz1'        : riDz1        = int(number)
-	elif word == 'riDz2'        : riDz2        = int(number) 
-	elif word == 'riDrive'      : riDrive      = int(number) 
-	elif word == 'alphaMaxAz'   : alphaMaxAz   = float(number)
-	elif word == 'alphaMinAz'   : alphaMinAz   = float(number)
-	elif word == 'alphaDz'      : alphaDz      = float(number)
-	elif word == 'invBetazCut'  : invBetazCut  = float(number)
-	elif word == 'sigBcFactor'  : sigBcFactor  = float(number)
-	elif word == 'nSmooth'      : nSmooth      = int(number)
-	elif word == 'rampUp'       : rampUpOption = int(number)
-	elif word == 'halfFirstCycle':halfFirstCycleOption = int(number)
-	#elif word == '' :  = number
+# process input file
+#inPath     = "../../input/"
+#inFileName = "exors"+str(sys.argv[1])
 
-Tdz4 = 1.e15 #new
+inpArgs    = sys.argv[1:]
+inp        = lib.InputFile(int(sys.argv[1]), float(sys.argv[2]), float(sys.argv[3]), float(sys.argv[4]), float(sys.argv[5]), float(sys.argv[6]), float(sys.argv[7]))
+
+
+
+
+
+tmax    = inp.tWait + inp.nCycles * inp.tCycle + inp.tRelax
+tmax1   = inp.tWait + inp.nCycles * inp.tCycle
+dtOut   = tmax/float(inp.nOut)
+
+Tdz4    = 1.e15 #new
 prandtl = 1.0
-tCycle = 2.0*tFlip
-tmax = tWait + nCycles * tCycle + tRelax
-tmax1 = tWait + nCycles * tCycle
+
 reportCutFactor = 500;
-writeCutFactor = 5000;
+writeCutFactor  = 5000;
+
 innerAdvBc  = 0
 innerDiffBc = 1
-outerAdvBc  = 1 
+outerAdvBc  = 1
 outerDiffBc = 1
-dtOut = tmax/float(nOut)
-tempGrid = np.loadtxt("../fmatrix/outGrid_" + str(gridId) + ".csv", delimiter=',')
-for i in range(nr):
-	print(str(i) + ", " + str(tempGrid[i]))
-for i in range(nr):
-	if tempGrid[i]:
-		if tempGrid[i]<rIn:
-			riBuffer1=i+1
-		if tempGrid[i]<rOut:
-			riBuffer2=i+1			
-mu          = 1.0
-mp          = 1.0
-kr0         = 1.0
-kb          = 1.0
-rootGM      = (2.0*3.14159)*np.power(rYearNorm,1.5)
-yearTime    = (2.0*3.14159)*np.power(rYearNorm,1.5)/rootGM
-print(yearTime)
-littleSigma = 1.0
 
-savePath = "../output/run"+str(runId)+"/"
+
+
+
+
+tempGrid = np.loadtxt("../../fmatrix/outGrid_" + str(inp.gridId) + ".csv", delimiter=',')
+nrOgGrid = len(tempGrid)
+#for i in range(len(tempGrid)):
+#	print(str(i) + ", " + str(tempGrid[i]))
+
+riMinReal = (np.abs(tempGrid-inp.rMin)).argmin()
+rMinReal  = tempGrid[riMinReal]
+riInReal  = (np.abs(tempGrid-inp.rIn)).argmin()
+rInReal   = tempGrid[riInReal]
+riOutReal = (np.abs(tempGrid-inp.rOut)).argmin()
+rOutReal  = tempGrid[riOutReal]
+riMaxReal = (np.abs(tempGrid-inp.rMax)).argmin()
+rMaxReal  = tempGrid[riMaxReal]
+
+tempGrid2 = tempGrid[riMinReal:riMaxReal+1]
+
+nrReal    = len(tempGrid2)
+
+
+riDz1    = (np.abs(tempGrid2-inp.rDz1)).argmin()
+#if riDz1<20: riDz1+=inp.nSmooth+1
+riDz2    = (np.abs(tempGrid2-inp.rDz2)).argmin()
+
+#print(riMinReal, rMinReal)
+#print(riInReal,  rInReal)
+#print(riOutReal, rOutReal)
+#print(riMaxReal, rMaxReal)
+#print(nrReal)
+#print(riDz1)
+#print(riDz2)
+
+for i in range(len(tempGrid2)):
+	if tempGrid2[i]<rInReal:	 riBuffer1=i+1
+	if tempGrid2[i]<rOutReal:  riBuffer2=i+1
+
+if riDz1 < riBuffer1: riDz1=riBuffer1
+
+print(tempGrid2.shape)
+
+################################################################################
+
+#kr0         = 1.0
+kr0         = 2.665*1.e7
+#littleSigma = 1.0
+littleSigma = 8.91*1.e-16
+#kbOverMuMp  = 1.0
+kbOverMuMp  = 0.000135693
+
+
+rootG       = (2.0*3.14159)
+rootGM      = rootG * np.sqrt(inp.mStar)
+rStarAu     = inp.rStar * 0.00465
+
+################################################################################
+
+
+
+
+savePath = "../../output/run"+str(inp.runId)+"/"
 if not os.path.exists(savePath): os.makedirs(savePath)
+inpArgFile = open(savePath+"params.txt", "w")
+for thing in inpArgs:
+	inpArgFile.write(thing)
+	inpArgFile.write('\n')
+inpArgFile.close()
 
-# IC function for bz 
+
+
+
+
+
+
+
+
+# IC function for bz
 def getPsi0(sg):
-	bz0 = bInitScale*np.power(sg.r, bz0index)
-	return getPsiFromBz(sg,0.0,bz0) 
+	bz0 = inp.bInitScale*np.power(sg.r, inp.bz0index)
+	return getPsiFromBz(sg,0.0,bz0)
 
 def getBz0(sg):
-	bz0 = bInitScale*np.power(sg.r, bz0index)
+	bz0 = inp.bInitScale*np.power(sg.r, inp.bz0index)
 	return bz0
 
 def getStellarDipole(sg):
-	b = bStar*np.power(sg.r/rStar, -3.0)
-	return b
+	b                 = inp.bStar*np.power(sg.r/rStarAu  , -3.0)
+	bFlux             = b * sg.r * sg.dr
+	bFluxTot          = np.sum(bFlux)
+	bFluxPerBuffer    = bFluxTot / float(riBuffer1)
+	bAdd              = np.zeros_like(b)
+	bAdd[0:riBuffer1] = bFluxPerBuffer / (sg.r[0:riBuffer1]*sg.dr[0:riBuffer1])
+	return bAdd
 
 def getStellarDipoleRampUp(sg, teff):
-	#bStar1 = bStar * (teff/(tmax-tWait))
-	bStar1 = np.sign(bStar)*min(np.absolute(bStar), np.absolute(bStar) * (teff/(0.5*tmax-tWait)) )
-	b = bStar1*np.power(sg.r/rStar, -3.0)
-	return b
+	#bStar1 = np.sign(inp.bStar)*min(np.absolute(inp.bStar), np.absolute(inp.bStar) * (teff/(0.5*inp.tmax-inp.tWait)) )
+	bStar1 = inp.bStar * (teff/(tmax-inp.tWait))
+	b                 = bStar1*np.power(sg.r/rStarAu  , -3.0)
+	bFlux             = b * sg.r * sg.dr
+	bFluxTot          = np.sum(bFlux)
+	bFluxPerBuffer    = bFluxTot / float(riBuffer1)
+	bAdd              = np.zeros_like(b)
+	bAdd[0:riBuffer1] = bFluxPerBuffer / (sg.r[0:riBuffer1]*sg.dr[0:riBuffer1])
+	#print(bStar1)
+	return bAdd
 
-# alpha calculation 
-alphaSmoothingMatrix = np.zeros([nr,nr])
-if nSmooth > 0:
-	for i in range(nr):
+# alpha calculation
+alphaSmoothingMatrix = np.zeros([nrReal,nrReal])
+if inp.nSmooth > 0:
+	for i in range(nrReal):
 		if i<riBuffer1:
-			alphaSmoothingMatrix[i,riBuffer1:riBuffer1+nSmooth]=1.0
+			alphaSmoothingMatrix[i,riBuffer1:riBuffer1+inp.nSmooth]=1.0
 		elif riBuffer1<=i and i<riBuffer2:
-			alphaSmoothingMatrix[i,max(i-nSmooth,riBuffer1):min(i+nSmooth+1,riBuffer2)]=1.0
-		elif riBuffer2<=i and i<nr:
-			alphaSmoothingMatrix[i,riBuffer2-nSmooth:riBuffer2] = 1.0
+			alphaSmoothingMatrix[i,max(i-inp.nSmooth,riBuffer1):min(i+inp.nSmooth+1,riBuffer2)]=1.0
+		elif riBuffer2<=i and i<nrReal:
+			alphaSmoothingMatrix[i,riBuffer2-inp.nSmooth:riBuffer2] = 1.0
 else:
-	for i in range(nr):
+	for i in range(nrReal):
 		alphaSmoothingMatrix[i,i]=1.0
-for i in range(nr):
+for i in range(nrReal):
 	alphaSmoothingMatrix[i]=alphaSmoothingMatrix[i]/np.sum(alphaSmoothingMatrix[i])
 def getDzEdgeIndex(dg):
 	return (np.abs(dg.Tc4-Tdz4)).argmin()
 def getAlpha(sg, s):
 	# alpha if active for all r
-	alphaActive = np.clip(11.0*np.power(np.abs(s.beta), -0.53),alphaMinAz,alphaMaxAz)	
-	# alpha if dead for all r	
-	alphaDead = alphaDz*np.ones_like(sg.r)
+	alphaActive = np.clip(11.0*np.power(np.abs(s.beta), -0.53),inp.alphaMinAz,inp.alphaMaxAz)
+	# alpha if dead for all r
+	alphaDead = inp.alphaDz*np.ones_like(sg.r)
 	# 1 if active, 0 if dead for all r
 	activeOnes = np.zeros_like(sg.r)
-	# 1 if dead, 0 if active for all r	
+	# 1 if dead, 0 if active for all r
 	deadOnes = np.zeros_like(sg.r)
 	# inside riDz1 is always active
 	activeOnes[0:riDz1]   = 1.0
 	# Hall DZ can be active or dead
-	activeOnes[riDz1:riDz2] = s.beta[riDz1:riDz2]<0.0
-	deadOnes[riDz1:riDz2]   = s.beta[riDz1:riDz2]>0.0
+	activeOnes[riDz1:riDz2] = s.beta[riDz1:riDz2]>0.0
+	deadOnes[riDz1:riDz2]   = s.beta[riDz1:riDz2]<0.0
 	# if inbetween, dead if previously dead, active if previously active
-	# active 
-	activeOnes[riDz1:riDz2] = np.logical_or( 
+	# active
+	activeOnes[riDz1:riDz2] = np.logical_or(
 															np.logical_and(
 																np.logical_and(
-																	s.bz[riDz1:riDz2] > -threshFactor*np.abs(sg.bz0[riDz1:riDz2]),
-																	s.bz[riDz1:riDz2] <  threshFactor*np.abs(sg.bz0[riDz1:riDz2])															
+																	s.bz[riDz1:riDz2] > -inp.threshFactor*np.abs(sg.bz0[riDz1:riDz2]),
+																	s.bz[riDz1:riDz2] <  inp.threshFactor*np.abs(sg.bz0[riDz1:riDz2])
 															),
-																s.alphaRawPrev[riDz1:riDz2] == alphaMinAz
+																s.alphaRawPrev[riDz1:riDz2] == inp.alphaMinAz
 															),
-															s.bz[riDz1:riDz2] < -threshFactor*np.abs(sg.bz0[riDz1:riDz2])
+															s.bz[riDz1:riDz2] > inp.threshFactor*np.abs(sg.bz0[riDz1:riDz2])
 														)
-	# dead 
-	deadOnes[riDz1:riDz2] = np.logical_or( 
+
+	# dead
+	deadOnes[riDz1:riDz2] = np.logical_or(
 															np.logical_and(
 																np.logical_and(
-																	s.bz[riDz1:riDz2] > -threshFactor*np.abs(sg.bz0[riDz1:riDz2]),
-																	s.bz[riDz1:riDz2] <  threshFactor*np.abs(sg.bz0[riDz1:riDz2])															
+																	s.bz[riDz1:riDz2] > -inp.threshFactor*np.abs(sg.bz0[riDz1:riDz2]),
+																	s.bz[riDz1:riDz2] <  inp.threshFactor*np.abs(sg.bz0[riDz1:riDz2])
 																),
-																s.alphaRawPrev[riDz1:riDz2] == alphaDz
+																s.alphaRawPrev[riDz1:riDz2] == inp.alphaDz
 															),
-															s.bz[riDz1:riDz2] > threshFactor*np.abs(sg.bz0[riDz1:riDz2])
+															s.bz[riDz1:riDz2] < -inp.threshFactor*np.abs(sg.bz0[riDz1:riDz2])
 														)
+
 	#print(deadOnes[riDz1:riDz2])
 	# outside riDz2 is always active
-	activeOnes[riDz2:nr]  = 1.0
+	activeOnes[riDz2:nrReal]  = 1.0
 	#print(s.alphaRawPrev)
 	#print(activeOnes)
 	#print(deadOnes)
 	# assign correct alpha for all r
 	alphaRaw = activeOnes*alphaActive + deadOnes*alphaDead
-	# smooth with smoothing matrix 
-	alphaSmooth = np.dot(alphaSmoothingMatrix, alphaRaw)	
-	return alphaRaw, alphaSmooth 
+	# smooth with smoothing matrix
+	alphaSmooth = np.dot(alphaSmoothingMatrix, alphaRaw)
+	return alphaRaw, alphaSmooth
 
 counter=0
 # driving sigma and/or bz
@@ -175,38 +219,38 @@ def getAddToBz(sg, dg, s):
 	global counter
 	addToBz = np.zeros_like(sg.r)
 	#addToBz[0:riBuffer1] = driveAmp
-	teff = sg.t[-1]-tWait
-	tModCycle = teff%tCycle
-	if sg.t[-1]>tWait and sg.t[-1]<tmax1:
-		if rampUpOption != 1:	
-			if   (0.00*tCycle) < tModCycle < (0.25*tCycle): addToBz =  getStellarDipole(sg)*(dg.dt/(tFlip/2.0))
-			elif (0.25*tCycle) < tModCycle < (0.50*tCycle): addToBz =  np.zeros_like(getStellarDipole(sg))
-			elif (0.50*tCycle) < tModCycle < (0.75*tCycle):	addToBz = -getStellarDipole(sg)*(dg.dt/(tFlip/2.0))
+	teff = sg.t[-1]-inp.tWait
+	tModCycle = teff%inp.tCycle
+	if sg.t[-1]>inp.tWait and sg.t[-1]<tmax1:
+		if inp.rampUpOption != 1:
+			if   (0.00*inp.tCycle) < tModCycle < (0.25*inp.tCycle): addToBz =  getStellarDipole(sg)*(dg.dt/(inp.tCycle/4.0))
+			elif (0.25*inp.tCycle) < tModCycle < (0.50*inp.tCycle): addToBz =  np.zeros_like(getStellarDipole(sg))
+			elif (0.50*inp.tCycle) < tModCycle < (0.75*inp.tCycle):	addToBz = -getStellarDipole(sg)*(dg.dt/(inp.tCycle/4.0))
 			else                                          : addToBz =  np.zeros_like(getStellarDipole(sg))
-		if rampUpOption == 1:
-			if   (0.00*tCycle) < tModCycle < (0.25*tCycle): addToBz =  getStellarDipoleRampUp(sg, teff)*(dg.dt/(tFlip/2.0))
-			elif (0.25*tCycle) < tModCycle < (0.50*tCycle): addToBz =  np.zeros_like(getStellarDipoleRampUp(sg, teff))
-			elif (0.50*tCycle) < tModCycle < (0.75*tCycle):	addToBz = -getStellarDipoleRampUp(sg, teff)*(dg.dt/(tFlip/2.0))
+		if inp.rampUpOption == 1:
+			if   (0.00*inp.tCycle) < tModCycle < (0.25*inp.tCycle): addToBz =  getStellarDipoleRampUp(sg, teff)*(dg.dt/(inp.tCycle/4.0))
+			elif (0.25*inp.tCycle) < tModCycle < (0.50*inp.tCycle): addToBz =  np.zeros_like(getStellarDipoleRampUp(sg, teff))
+			elif (0.50*inp.tCycle) < tModCycle < (0.75*inp.tCycle):	addToBz = -getStellarDipoleRampUp(sg, teff)*(dg.dt/(inp.tCycle/4.0))
 			else                                          : addToBz =  np.zeros_like(getStellarDipoleRampUp(sg, teff))
-	#if teff < 10.0*tFlip :	return addToBz/2.0
-	if teff < tFlip and halfFirstCycleOption==1 :	return addToBz/2.0
+	#if teff < 10.0*inp.tCycle/2.0 :	return addToBz/2.0
+	counter+=1;
 	#else: return addToBz
 	#if counter%100==0: print((getStellarDipoleRampUp(sg, teff))[10]);
-	counter+=1;
-	return addToBz
-	
+	if teff < inp.tCycle/2.0: return addToBz*inp.firstCycleFactor
+	else:                     return addToBz
+
 
 # functions to advance psi and sigma
 def getkPsi(sg, dg, s):
-	return -(sg.r*dg.vAdv*s.bz + sg.r*dg.vDiff*s.brs)  
+	return -(sg.r*dg.vAdv*s.bz + sg.r*dg.vDiff*s.brs)
 def getkSig(sg, dg, s):
 	returnArray = np.zeros_like(sg.r)
 	nuSi   = dg.nu * sg.x * s.sig
 	nuSip1 = np.roll(nuSi, -1)
 	nuSim1 = np.roll(nuSi,  1)
-	returnArray[0]    = np.square(1.0/(sg.x[0]    * sg.dx[0]))    * (nuSip1[0]                   - 2.0*nuSi[0])  
+	returnArray[0]    = np.square(1.0/(sg.x[0]    * sg.dx[0]))    * (nuSip1[0]                   - 2.0*nuSi[0])
 	returnArray[1:-1] = np.square(1.0/(sg.x[1:-1] * sg.dx[1:-1])) * (nuSip1[1:-1] + nuSim1[1:-1] - 2.0*nuSi[1:-1])
-	returnArray[-1]   = np.square(1.0/(sg.x[-1]   * sg.dx[-1]))   * (sigBcFactor*((sg.x[-1]+sg.dx[-1])/sg.x[-1])*nuSim1[-1] + nuSim1[-1] - 2.0*nuSi[-1])
+	returnArray[-1]   = np.square(1.0/(sg.x[-1]   * sg.dx[-1]))   * (inp.sigBcFactor*((sg.x[-1]+sg.dx[-1])/sg.x[-1])*nuSim1[-1] + nuSim1[-1] - 2.0*nuSi[-1])
 	return returnArray
 def rkGetNextState(sg, dg, s1):
 	s2 = State(sg, dg, s1.psi + s1.kPsi*(dg.dt/2.0), s1.sig + s1.kSig*(dg.dt/2.0))
@@ -224,16 +268,16 @@ def spaceDeriv(sg, a):
 	aMinus=np.roll(a,-1)
 	da = (aMinus-aPlus)/2.0
 	da[0] = a[1] - a[0]
-	da[sg.nr-1] = (a[sg.nr-1] - a[sg.nr-2]) 
+	da[sg.nr-1] = (a[sg.nr-1] - a[sg.nr-2])
 	return da/sg.dr
 def xIn(r):
-	return (r-rMin)/(rIn-rMin)
+	return (r-rMinReal)/(rInReal-rMinReal)
 def xOut(r):
-	return (r-rMax)/(rOut-rMax)
+	return (r-rMaxReal)/(rOutReal-rMaxReal)
 def smooth(x):
 	return (3.0*x*x)/(1.0+2.0*x*x*x)
-summingHelperMatrix = np.zeros([nr,nr])
-for i in range(nr):
+summingHelperMatrix = np.zeros([nrReal,nrReal])
+for i in range(nrReal):
 	summingHelperMatrix[i,0:i]=1.0
 def getPsiFromBz(sg, dg, bz):
 	temp = sg.r * sg.dr * bz
@@ -244,28 +288,30 @@ def getrindex(sg, r1):
 def getTimeStep(sg, dg, s):
 	dtAdv  = np.amin(np.abs(sg.dr/dg.vAdv))
 	dtDiff = np.amin(np.abs(2.0*sg.dr/(3.14159*dg.vDiff)))
-	dt = min(dtAdv, dtDiff)
-	return dt*courantNo
+	dt = min(dtAdv, dtDiff, 0.1)
+	return dt*inp.courantNo
 
-	
+
 
 # static grid object
 class StaticGrid:
 	def __init__(self, idNum):
-		self.r = np.loadtxt("../fmatrix/outGrid_" + str(idNum) + ".csv", delimiter=',')
+		self.rMin  = rMinReal
+		self.rIn   = rInReal
+		self.rOut  = rOutReal
+		self.rMax  = rMaxReal
+		self.rTemp = np.loadtxt("../../fmatrix/outGrid_" + str(idNum) + ".csv", delimiter=',')
+		self.r     = self.rTemp[riMinReal:riMaxReal+1]
 		self.rootr = np.power(self.r, 0.5)
-		self.x = self.rootr
-		self.dx = np.zeros_like(self.r)
-		self.nr = len(self.r)		
-		self.dr = np.zeros_like(self.r)
-		self.rMin = rMin
-		self.rIn = rIn
-		self.rOut = rOut
-		self.rMax = rMax
+		self.x     = self.rootr
+		self.dx    = np.zeros_like(self.r)
+		self.nr    = len(self.r)
+		self.dr    = np.zeros_like(self.r)
 		self.Omega = rootGM*np.power(self.r,-1.5)
-		self.Omega2 = np.power(self.Omega,2.0)
-		self.fInvMatrix = np.loadtxt("../fmatrix/fmatrixInvFlat_" + str(idNum) +".csv", delimiter=',')
-		self.fInvMatrix = np.reshape(self.fInvMatrix, [self.nr, self.nr])
+		self.Omega2= np.power(self.Omega,2.0)
+		self.fInvMatrixTemp = np.loadtxt("../../fmatrix/fmatrixInvFlat_" + str(idNum) +".csv", delimiter=',')
+		self.fInvMatrixTemp = np.reshape(self.fInvMatrixTemp, [nrOgGrid, nrOgGrid])
+		self.fInvMatrix     = self.fInvMatrixTemp[riMinReal:riMaxReal+1, riMinReal:riMaxReal+1]
 		self.t = [0.0];
 		self.bz0 = getBz0(self)
 		for i in range(self.nr):
@@ -276,30 +322,30 @@ class StaticGrid:
 			if i==0: self.dx[i]=self.x[i+1]-self.x[i]
 			elif 0<i and i<self.nr-1: self.dx[i]=(self.x[i+1]-self.x[i-1])/2.0
 			elif i==self.nr-1: self.dx[i]=(self.x[i]-self.x[i-1])
-		self.applyAdvBc = np.zeros_like(self.r)		
+		self.applyAdvBc = np.zeros_like(self.r)
 		for i in range(self.nr):
-			if self.r[i]<self.rIn:
+			if self.r[i]<=self.rIn:
 				if innerAdvBc==-1: self.applyAdvBc[i] = 0.0
 				if innerAdvBc== 0: self.applyAdvBc[i] = smooth(xIn(self.r[i]))
-				if innerAdvBc== 1: self.applyAdvBc[i] = 1.0 
-			elif self.rIn<self.r[i] and self.r[i]<self.rOut: 
+				if innerAdvBc== 1: self.applyAdvBc[i] = 1.0
+			elif self.rIn<self.r[i] and self.r[i]<self.rOut:
 				self.applyAdvBc[i] = 1.0
-			elif self.rOut<self.r[i]:
+			elif self.rOut<=self.r[i]:
 				if outerAdvBc==-1: self.applyAdvBc[i] = 0.0
 				if outerAdvBc== 0: self.applyAdvBc[i] = smooth(xOut(self.r[i]))
-				if outerAdvBc== 1: self.applyAdvBc[i] = 1.0 
-		self.applyDiffBc = np.zeros_like(self.r)		
+				if outerAdvBc== 1: self.applyAdvBc[i] = 1.0
+		self.applyDiffBc = np.zeros_like(self.r)
 		for i in range(self.nr):
-			if self.r[i]<self.rIn:
+			if self.r[i]<=self.rIn:
 				if innerDiffBc==-1: self.applyDiffBc[i] = 0.0
 				if innerDiffBc== 0: self.applyDiffBc[i] = smooth(xIn(self.r[i]))
-				if innerDiffBc== 1: self.applyDiffBc[i] = 1.0 
-			elif self.rIn<self.r[i] and self.r[i]<self.rOut: 
+				if innerDiffBc== 1: self.applyDiffBc[i] = 1.0
+			elif self.rIn<self.r[i] and self.r[i]<self.rOut:
 				self.applyDiffBc[i] = 1.0
-			elif self.rOut<self.r[i]:
+			elif self.rOut<=self.r[i]:
 				if outerDiffBc==-1: self.applyDiffBc[i] = 0.0
 				if outerDiffBc== 0: self.applyDiffBc[i] = smooth(xOut(self.r[i]))
-				if outerDiffBc== 1: self.applyDiffBc[i] = 1.0 
+				if outerDiffBc== 1: self.applyDiffBc[i] = 1.0
 
 # state object
 class State:
@@ -309,7 +355,7 @@ class State:
 			dPsidr = spaceDeriv(sg, self.psi)
 			self.bz = dPsidr/sg.r
 			self.brs = np.dot(sg.fInvMatrix, self.psi)
-			self.sig = np.zeros_like(sg.r)			
+			self.sig = np.zeros_like(sg.r)
 			self.kPsi = np.zeros_like(sg.r)
 			self.kSig = np.zeros_like(sg.r)
 			self.beta = 1.e10*np.ones_like(sg.r)
@@ -329,27 +375,32 @@ class State:
 class DynamicGrid:
 	def __init__(self, sg, s, initialize=0):
 		if initialize==1:
-			if bInitScale < 0.0: 
-				self.alphaRaw = np.ones_like(sg.r)*alphaMinAz
-				self.alphaSmooth = np.ones_like(sg.r)*alphaMinAz
+			if inp.bInitScale > 0.0:
+				self.alphaRaw = np.ones_like(sg.r)*inp.alphaMinAz
+				self.alphaSmooth = np.ones_like(sg.r)*inp.alphaMinAz
 			else:
-				self.alphaRaw = np.ones_like(sg.r)*alphaMinAz
-				self.alphaRaw[riDz1:riDz2] = alphaDz
+				self.alphaRaw = np.ones_like(sg.r)*inp.alphaMinAz
+				self.alphaRaw[riDz1:riDz2] = inp.alphaDz
 				self.alphaSmooth = np.dot(alphaSmoothingMatrix, self.alphaRaw)
-			self.mdot=np.ones_like(sg.r)*mdot0
+			self.mdot=np.ones_like(sg.r)*inp.mdot0
 			#print(self.alphaSmooth)
 			#print(self.alphaRaw)
 			# self consistently solved quantities (9)
-			self.Tc4    = np.power(np.power(1.5,0.2)*np.power(mdot0,0.4)*np.power(mp,0.2)*np.power(kr0,0.2)*np.power(mu,0.2)*np.power(sg.Omega,0.6)*np.power(2.0,-1)*np.power(kb,-0.2)*np.power(3.14159,-0.4)*np.power(self.alphaSmooth,-0.2)*np.power(littleSigma,-0.2),4.0)
-			self.Tdisk4 = np.power(np.power(2.0,0.75)*np.power(kb,0.25)*np.power(3.14159,0.25)*np.power(self.Tc4,5.0/16.0)*np.power(self.alphaSmooth,0.25)*np.power(mdot0,-0.25)*np.power(mp,-0.25)*np.power(kr0,-0.25)*np.power(mu,-0.25)*np.power(sg.Omega,-0.25),4.0)
-			self.cs     = np.sqrt(mdot0*self.Tdisk4*kr0*sg.Omega/(self.Tc4*self.alphaSmooth)/(8.0*3.14159))
-			self.rho    = (mdot0*sg.Omega2)/(np.sqrt(18.0)*np.power(3.14159,1.5)*self.alphaSmooth*np.power(self.cs,3.0))
+			#self.Tc4    = np.power(np.power(1.5,0.2)*np.power(inp.mdot0,0.4)*np.power(mp,0.2)*np.power(kr0,0.2)*np.power(mu,0.2)*np.power(sg.Omega,0.6)*np.power(2.0,-1)*np.power(kb,-0.2)*np.power(3.14159,-0.4)*np.power(self.alphaSmooth,-0.2)*np.power(littleSigma,-0.2),4.0)
+			self.Tc4    = np.power(np.power(1.5,0.2)*np.power(inp.mdot0,0.4)*np.power(kr0,0.2)*np.power(sg.Omega,0.6)*np.power(2.0,-1)*np.power(3.14159,-0.4)*np.power(self.alphaSmooth,-0.2)
+						  *np.power(kbOverMuMp,-0.2)*np.power(littleSigma,-0.2),4.0)
+			#self.Tdisk4 = np.power(np.power(2.0,0.75)*np.power(kb,0.25)*np.power(3.14159,0.25)*np.power(self.Tc4,5.0/16.0)*np.power(self.alphaSmooth,0.25)*np.power(inp.mdot0,-0.25)*np.power(mp,-0.25)*np.power(kr0,-0.25)*np.power(mu,-0.25)*np.power(sg.Omega,-0.25),4.0)
+			self.Tdisk4 = np.power(np.power(2.0,0.75)*np.power(3.14159,0.25)*np.power(self.Tc4,5.0/16.0)*np.power(self.alphaSmooth,0.25)*np.power(inp.mdot0,-0.25)*np.power(kr0,-0.25)*np.power(sg.Omega,-0.25)
+						  *np.power(kbOverMuMp,0.25),4.0)
+			self.cs     = np.sqrt(inp.mdot0*self.Tdisk4*kr0*sg.Omega/(self.Tc4*self.alphaSmooth)/(8.0*3.14159))
+			self.rho    = (inp.mdot0*sg.Omega2)/(np.sqrt(18.0)*np.power(3.14159,1.5)*self.alphaSmooth*np.power(self.cs,3.0))
+			#self.h      = 2*self.cs/sg.Omega ############# THIS FACTOR OF 2
 			self.h      = self.cs/sg.Omega
 			self.kR     = np.sqrt(32.0/3.14159)*self.Tc4/(3.0*self.h*self.Tdisk4*self.rho)
 			self.nu     = self.cs*self.h*self.alphaSmooth
 			self.tau    = 4.0*self.Tc4/(3.0*self.Tdisk4)
 			s.sig       = self.h*np.sqrt(2.0*3.14159)*self.rho
-			# other intermediate helpful quantities	
+			# other intermediate helpful quantities
 			self.vAdv  = -1.5*(self.nu/sg.r)*sg.applyAdvBc
 			self.vDiff = ((self.nu/sg.r)/(prandtl*(self.h/sg.r)))*sg.applyDiffBc
 			s.kPsi      = getkPsi(sg, self, s)
@@ -362,16 +413,20 @@ class DynamicGrid:
 		elif initialize==0:
 			self.alphaRaw, self.alphaSmooth = getAlpha(sg, s)
 			# self consistently solved quantities (9)
-			self.Tc4    = np.power((3.0/4.0)*np.power(kb,1.0/3.0)*np.power(self.alphaSmooth,1.0/3.0)*np.power(kr0,1.0/3.0)*np.power(s.sig,2.0/3.0)*np.power(sg.Omega,1.0/3.0)*np.power(mp,-1.0/3.0)*np.power(mu,-1.0/3.0)*np.power(littleSigma,-1.0/3.0) ,4.0)	
+			#self.Tc4    = np.power((3.0/4.0)*np.power(kb,1.0/3.0)*np.power(self.alphaSmooth,1.0/3.0)*np.power(kr0,1.0/3.0)*np.power(s.sig,2.0/3.0)*np.power(sg.Omega,1.0/3.0)*np.power(mp,-1.0/3.0)*np.power(mu,-1.0/3.0)*np.power(littleSigma,-1.0/3.0) ,4.0)
+			self.Tc4    = np.power((3.0/4.0)*np.power(self.alphaSmooth,1.0/3.0)*np.power(kr0,1.0/3.0)*np.power(s.sig,2.0/3.0)*np.power(sg.Omega,1.0/3.0)
+						  *np.power(kbOverMuMp,1.0/3.0)*np.power(littleSigma,-1.0/3.0) ,4.0)
 			self.Tdisk4 = np.power(np.power(2.0,0.75)*np.power(self.Tc4,0.25)*np.power(3.0,-0.25)*np.power(kr0,-0.25)*np.power(s.sig,-0.25),4.0)
-			self.cs     = np.sqrt( (kb*np.power(self.Tc4,0.25)) / (mp*mu) )
+			#self.cs     = np.sqrt( (kb*np.power(self.Tc4,0.25)) / (mp*mu) )
+			self.cs     = np.sqrt( (np.power(self.Tc4,0.25)) * kbOverMuMp )
 			self.rho    = 9.0*self.cs*self.alphaSmooth*np.power(s.sig,2.0)*sg.Omega2 / (np.sqrt(128*3.14159)*self.Tdisk4*littleSigma)
+			#self.h      = 2*s.sig/(np.sqrt(2.0*3.14159)*self.rho) ############# THIS FACTOR OF 2
 			self.h      = s.sig/(np.sqrt(2.0*3.14159)*self.rho)
 			self.kR     = 8.0*self.Tc4 / ( 3.0*self.Tdisk4*s.sig )
 			self.nu     = self.cs*self.h*self.alphaSmooth
 			self.tau    = 4.0*self.Tc4/(3.0*self.Tdisk4)
 			self.mdot   = 3.0*3.14159*self.nu*s.sig
-			# other intermediate helpful quantities	
+			# other intermediate helpful quantities
 			#self.vAdv  = -1.5*(self.nu/sg.r)*sg.applyAdvBc
 			takeDerivOfThis = self.nu * s.sig * np.sqrt(sg.r)
 			self.vAdv  = -(3.0/(s.sig*np.sqrt(sg.r))) * spaceDeriv(sg, takeDerivOfThis) * sg.applyAdvBc
@@ -381,7 +436,7 @@ class DynamicGrid:
 			#plt.loglog(sg.r, self.mdot); plt.xlabel("r"); plt.ylabel("mdot"); plt.show(); plt.clf();
 			#plt.loglog(sg.r, s.sig); plt.xlabel("r"); plt.ylabel("sigma"); plt.show(); plt.clf();
 		self.dt = getTimeStep(sg, self, s)
-		
+
 # timer object
 class Timer:
 	def __init__(self, labels):
@@ -405,17 +460,76 @@ class Timer:
 				sys.stdout.write(self.labels[n] + ": " + str(1000*self.timeSpent[n]/self.count[n]) + " ms per call  " + str(self.count[n]) + " call" + "\n" )
 
 # report function
+nReport=0
 def report(timer, n, t, tmax):
+	global nReport
 	msPerCycle = 1000*timer.checkTimer(0)/(max(n,1))
 	msPerCycleRecent = 1000*(time.time()-timer.startTime[1][max(n-reportCutFactor,0)])/(reportCutFactor)
-	timeRemaining = (timer.checkTimer(0)/(max(t,0.001))) * (tmax-t)	
+	timeRemaining = (timer.checkTimer(0)/(max(t,0.001))) * (tmax-t)
 	sys.stdout.write( "" "\n")
-	sys.stdout.write( "runID = " + str(sys.argv[1]) + "\n")
+	sys.stdout.write( "runID = " + str(inp.runId) + "\n")
 	sys.stdout.write( "cycle = " + str(n) + "   t = " + str(round(t,1)) + "/" + str(tmax) + "   " + str(round((t/tmax)*100,2)) + " % done" + "\n")
 	sys.stdout.write( str(round(msPerCycle,3)) + " ms per cycle total" + "\n")
-	sys.stdout.write( str(round(msPerCycleRecent,3)) + " ms per cycle recently " + "\n")    
-	sys.stdout.write( str(int(timeRemaining/3600)) + ":" + str(int(timeRemaining%3600/60)) + ":" + str(int((timeRemaining%60))) + " remaining" + "\n") 
+	sys.stdout.write( str(round(msPerCycleRecent,3)) + " ms per cycle recently " + "\n")
+	sys.stdout.write( str(int(timeRemaining/3600)) + ":" + str(int(timeRemaining%3600/60)) + ":" + str(int((timeRemaining%60))) + " remaining" + "\n")
+	sys.stdout.write("h/r at 1 AU = " + str(dg.h[(np.abs(sg.r-1.0)).argmin()]) + "\n")
 	sys.stdout.flush()
+	r1  = sg.r[(np.abs(sg.r-1.0)).argmin()]
+	r2  = sg.r[(np.abs(sg.r-2.0)).argmin()]
+
+	hr1 = dg.h[(np.abs(sg.r-1.0)).argmin()] / r1
+	hr2 = dg.h[(np.abs(sg.r-2.0)).argmin()] / r2
+	sys.stdout.write("h/r 1 and 2 = " + str(hr1) + ", " + str(hr2) + "\n")
+	sys.stdout.write("h/r PL = " + str(np.log10(hr2/hr1)/np.log10(r2/r1)) +"\n")
+
+	mdot1 = dg.mdot[(np.abs(sg.r-1.0)).argmin()]
+	mdot2 = dg.mdot[(np.abs(sg.r-2.0)).argmin()]
+	sys.stdout.write("mdot 1 and 2 = " + str(mdot1) + ", " + str(mdot2) + "\n")
+	sys.stdout.write("mdot PL = " + str(np.log10(mdot2/mdot1)/np.log10(r2/r1)) +"\n")
+
+	#sig1 = s.sig[(np.abs(sg.r-1.0)).argmin()]
+	#sig2 = s.sig[(np.abs(sg.r-2.0)).argmin()]
+
+	tc1 = np.power(dg.Tc4[(np.abs(sg.r-1.0)).argmin()],0.25)
+	tc2 = np.power(dg.Tc4[(np.abs(sg.r-2.0)).argmin()],0.25)
+	sys.stdout.write("tc 1 and 2 = " + str(tc1) + ", " + str(tc2) + "\n")
+	#sys.stdout.write("tc PL = " + str(np.log10(tc2/tc1)/np.log10(r2/r1)) +"\n")
+
+	cs1 = dg.cs[(np.abs(sg.r-1.0)).argmin()]
+	cs2 = dg.cs[(np.abs(sg.r-2.0)).argmin()]
+	sys.stdout.write("cs 1 and 2 = " + str(cs1) + ", " + str(cs2) + "\n")
+	#sys.stdout.write("cs PL = " + str(np.log10(cs2/cs1)/np.log10(r2/r1)) +"\n")
+	cs1 *= 474372; cs2*=474372
+	sys.stdout.write("converted to cgs cs 1 and 2 = " + str(cs1) + ", " + str(cs2) + "\n")
+
+	tDiff1 = r1 / dg.vDiff[(np.abs(sg.r-1.0)).argmin()]
+	tDiff2 = r2 / dg.vDiff[(np.abs(sg.r-2.0)).argmin()]
+	sys.stdout.write("tDiff 1 and 2 = " + str(tDiff1) + ", " + str(tDiff2) + "\n")
+	sys.stdout.write("tDiff PL = " + str(np.log10(tDiff2/tDiff1)/np.log10(r2/r1)) +"\n")
+
+	thisTc  = np.power(dg.Tc4,0.25)
+	thisRdz = sg.r[(np.abs(thisTc-1000)).argmin()]
+	sys.stdout.write("r_dz from code = " + str(thisRdz) + "\n")
+
+	#sys.stdout.write(str(np.sum(s.sig*sg.r*sg.dr*6.28)))
+	sys.stdout.flush()
+	#thisTc = np.square(thisCs) * (1./(3060.*1.e4))
+	if nReport==0:
+		tDiff = sg.r / dg.vDiff
+		sys.stdout.write(str(tDiff[riDz1]))
+		sys.stdout.write("tDiff at r_dz is = " + str(tDiff[riDz1]) + "\n")
+		sys.stdout.write("tCycle is = " + str(inp.tCycle) + "\n")
+		if tDiff[riDz1]<inp.tCycle: sys.stdout.write("OUTBURSTS EXPECTED" + "\n")
+		elif tDiff[riDz1]<2.*inp.tCycle: sys.stdout.write("OUTBURSTS MARGINAL" + "\n")
+		else: sys.stdout.write("OUTBURSTS NOT EXPECTED" + "\n")
+		sys.stdout.flush()
+		plt.loglog(sg.r, np.power(dg.Tc4,0.25));
+		plt.axvline(x=inp.rDz1)
+		plt.axhline(y=1000);
+		#plt.show(); plt.clf();
+	nReport+=1
+	#thisSig = s.sig * 8885
+	#plt.loglog(sg.r, thisSig); plt.show(); plt.clf();
 
 # function to write to file
 def writeToFile(sg, dgOut, sOut, nOutCurrent, timer):
@@ -457,7 +571,7 @@ def writeToFile(sg, dgOut, sOut, nOutCurrent, timer):
 
 
 
-sg = StaticGrid(gridId)
+sg = StaticGrid(inp.gridId)
 
 dgOut = []; sOut = []; tOut=[];
 
@@ -466,7 +580,7 @@ dg = DynamicGrid(sg, s, initialize=1)
 
 # integration loop
 timer = Timer(["total", "cycles", "dgrid", "state", "saving dgrid", "saving state"])
-n=0; tCheck = 0.0; nOutCurrent=0; 
+n=0; tCheck = 0.0; nOutCurrent=0;
 timer.startTimer(0)
 while tCheck<tmax:
 	timer.startTimer(1)
@@ -477,7 +591,7 @@ while tCheck<tmax:
 	if ( (n)%writeCutFactor==0 and n>0 ) :
 		writeToFile(sg, dgOut, sOut, nOutCurrent, timer)
 	n=n+1
-	timer.startTimer(2)	
+	timer.startTimer(2)
 	dg = DynamicGrid(sg, s)
 	timer.endTimer(2)
 	timer.startTimer(3)
@@ -493,43 +607,3 @@ writeToFile(sg, dgOut, sOut, nOutCurrent, timer)
 
 
 timer.printInfo()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

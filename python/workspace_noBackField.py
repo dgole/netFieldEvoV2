@@ -16,8 +16,8 @@ import matplotlib.animation as animation
 import matplotlib.gridspec as gridspec
 import matplotlib.colors as colors
 
-m.rcParams['text.usetex'] = True
-m.rcParams['text.latex.unicode'] = True
+#m.rcParams['text.usetex'] = True
+#m.rcParams['text.latex.unicode'] = True
 font = {'family' : 'normal', 'weight' : 'bold', 'size'   : 16}
 fontLabels = {'family' : 'normal', 'weight' : 'bold', 'size'   : 20}
 m.rc('font', **font)
@@ -58,66 +58,47 @@ m.rcParams['ytick.minor.width'] = m.rcParams['xtick.minor.width']
 # 20 tdiff
 # 21 dFlux
 
-idNum = int(sys.argv[1])
+idNum = 2011
 
 # make data object
 do = reader.Data("../../output/run" + str(idNum) + "/")
 
-# multiple ST plots
-mp1 = reader.MultiPannel()
-mp1.addImshowBz(0, do)
-mp1.addImshowOther(1, do, 0)
-mp1.addImshowOther(2, do, 15)
-mp1.addLum(3, do)
+# time scales
+#reader.timeScalesPlot(do)
+#plt.axhline(do.inp.tCycle, linestyle='--', color='k')
+#plt.axhline(1.0, linestyle='--', color='k')
+#plt.axvline(do.inp.rDz1, linestyle='--', color='k')
+#plt.savefig(do.savePath + "timeScales.png", bbox_inches='tight'); plt.clf()
 
-plt.savefig(do.savePath + "multiPannel.png", bbox_inches='tight')
+################################################################################
 
+nrCut = 0
 
-'''
+bzPreFactor = 1.e-3
+col = 12
+bzRms = bzPreFactor * np.sqrt(np.mean(np.square(do.data[col][do.nt-4000:,:]),axis=0))
+plt.loglog(do.r[:do.nr-nrCut], bzRms[:do.nr-nrCut])
+plt.xlabel('r (AU)')
+plt.ylabel(do.header[col])
 
-im = ax[0].imshow(
-						      np.transpose(np.fliplr(do.data[12])),
-						      extent=extent,
-				      		  aspect=aspect,
-				    		  cmap=plt.get_cmap('coolwarm'),
-						      norm=colors.SymLogNorm(linthresh=0.01, linscale=1.0, vmin=-10.0, vmax=10.0)
-					        )
-ax[0].set_ylabel('log(r) (AU)')
-ax[0].set_title(do.header[12])
-fig.colorbar(im, cax=cax[0], orientation='vertical')
-#, ticks=[-1.e-1, -1.e-3, 0, 1.e-3, 1.e-1])
+for preFactor in [1.5e-4]:
+    model = preFactor*np.power(do.r[:do.nr-50],-3.5)
+    plt.loglog(do.r[:do.nr-50], model, color='k', linestyle='--')
 
-im = ax[1].imshow(
-		       			  np.transpose(np.fliplr(do.data[0])),
-		 				      extent=extent,
-						      aspect=aspect,
-						      cmap=plt.get_cmap('viridis'),
-							  norm=colors.LogNorm()
-						      )
-ax[1].set_ylabel('log(r) (AU)')
-ax[1].set_title(do.header[0])
-fig.colorbar(im, cax=cax[1], orientation='vertical')
+plt.savefig(do.savePath + "bz_rms_pl.png", bbox_inches='tight'); plt.clf()
 
-im = ax[2].imshow(
-						      np.transpose(np.fliplr(do.data[15])),
-					          extent=extent,
-						      aspect=aspect,
-						      cmap=plt.get_cmap('viridis'),
-							  norm=colors.LogNorm()
-						      )
-ax[2].set_ylabel('log(r) (AU)')
-ax[2].set_title(do.header[15])
-fig.colorbar(im, cax=cax[2], orientation='vertical')
+################################################################################
 
+beta1 = np.abs(do.data[16][5, do.getrindex(3.0)])
+print(beta1)
+normFactor = (1.e5/beta1) * 1.e6 # stellar field enhance
+print(beta1*normFactor)
+plotData = normFactor*np.power(np.mean(np.power(np.absolute(do.data[16][do.nt-4000:,:]),-1), axis=0),-1)
+plt.loglog(do.r[:do.nr-nrCut], plotData[:do.nr-nrCut])
+plt.xlabel('r (AU)')
+plt.ylabel(do.header[16])
 
-ax[3].semilogy(do.t, do.lum)
-ax[3].set_xlim(do.t[0],do.t[-1])
-ax[3].set_xlabel('t (years)')
-ax[3].set_ylabel('Luminosity')
-
-
-plt.savefig(do.savePath + "multiPannel.png", bbox_inches='tight')
-'''
+plt.savefig(do.savePath + "betaz_rms_pl.png", bbox_inches='tight'); plt.clf()
 
 
 
@@ -136,9 +117,4 @@ plt.savefig(do.savePath + "multiPannel.png", bbox_inches='tight')
 
 
 
-
-
-
-
-
-
+#

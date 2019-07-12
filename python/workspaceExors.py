@@ -16,11 +16,12 @@ import matplotlib.animation as animation
 import matplotlib.gridspec as gridspec
 import matplotlib.colors as colors
 
-m.rcParams['text.usetex'] = True
-m.rcParams['text.latex.unicode'] = True
-font = {'family' : 'normal', 'weight' : 'bold', 'size'   : 16}
-fontLabels = {'family' : 'normal', 'weight' : 'bold', 'size'   : 20}
+#m.rcParams['text.usetex'] = True
+#m.rcParams['text.latex.unicode'] = True
+font = {'family' : 'sans-serif', 'weight' : 'normal', 'size'   : 16}
+fontLabels = {'family' : 'sans-serif', 'weight' : 'normal', 'size'   : 20}
 m.rc('font', **font)
+
 
 m.rcParams['xtick.major.size']  = 8
 m.rcParams['xtick.major.width'] = 1.5
@@ -63,6 +64,8 @@ idNum = int(sys.argv[1])
 # make data object
 do = reader.Data("../../output/run" + str(idNum) + "/")
 
+print(do.t)
+
 # time scales
 reader.timeScalesPlot(do)
 plt.axhline(do.inp.tCycle, linestyle='--', color='k')
@@ -99,21 +102,3 @@ mp4.fig.savefig(do.savePath + "multiPannel4.png", bbox_inches='tight')
 
 
 #reader.profile(do, 12, 1000); plt.show();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

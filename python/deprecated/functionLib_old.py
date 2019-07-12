@@ -28,12 +28,15 @@ class InputFile:
 		self.nOut=8000
 		self.alphaMaxAz = 1.e-1
 		self.alphaMinAz = 1.e-1
-		self.alphaDz    = 3.e-3
+		self.alphaDz    = 1.e-1 ################################
+		#self.alphaDz    = 3.e-3
 		self.bInitScale = -1.e-2  ###############################
+		#self.bInitScale = -1.e-3  ###############################
+		#self.bInitScale = -1.e-6  ###############################
 		self.threshFactor = 0.0
 		self.nSmooth      = 5
 		self.rampUp       = 0
-		self.firstCycleFactor = 0.75
+		self.firstCycleFactor = 0.5
 		self.courantNo    = 0.4
 		self.bz0index     = -0.5
 		self.sig0option   = 0
@@ -41,7 +44,7 @@ class InputFile:
 		self.rDz2         = 100000
 		self.sigBcFactor  = 0.9935
 		self.rampUpOption = 0
-		self.pStar       = 7.0
+		self.pStar        = 7.0
 		if self.mStar==1.0:
 			self.rStar = 2.0
 		elif self.mStar==0.9:
@@ -76,11 +79,17 @@ class InputFile:
 		tc    = np.power(np.power(td,4.0)*0.75*tau,0.25) / 1.0
 		index = (np.abs(tc-1000)).argmin()
 		self.rDz1 = r[index]
-	
+
 		self.rMin = self.rIn *(1.0/1.25)
 		self.rOut = min(self.rIn * 100.0, 5.0/1.25)
 		self.rMax = self.rOut*(1.25)
-		
+
+		#self.rDz1 = self.rMax #####################################################
+
+
+
+		print("mStar = " + str(self.mStar))
+		print("rStar = " + str(self.rStar))
 		print('')
 		print('rMs  = ' + str(self.rMs))
 		print('rCo  = ' + str(self.rCo))
@@ -91,29 +100,3 @@ class InputFile:
 		print('rOut = ' + str(self.rOut))
 		print('rMax = ' + str(self.rMax))
 		print('')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
