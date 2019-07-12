@@ -7,15 +7,15 @@ fmatrix: Contains grid geometry files and tables of pre-calculated geometry term
 
 mathematica: Contians code to set up grids and calculate the f matricies.  Also contains lots of random notebooks plotting and calculating various disk models.  
 
-python: the python code-base to run the model and plot the results.  
+python: The python code-base to run the model and plot the results.  
 
-scripts_run: scripts that run the models  
+scripts_run: Scripts that run the models.  
 
-scripts_analysis: scripts that make plots  
+scripts_analysis: Scripts that make plots.  
 
 # Example Plots
 Time evolution plot:  
-<img src="./demo_spaceTime.png" width="578" height="651" />  
+<img src="./demo_spaceTime.png" width="651" height="578" />  
 
 Array of light curves for various disk/star parameters:  
 <img src="./demo_lightCurves.png" width="560" height="597" />  
